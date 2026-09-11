@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Set a Reminder — FitPulse</title>
+    <meta name="description" content="Schedule a personal fitness reminder with a matching workout preview." />
+    <meta name="theme-color" content="#101014" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="schedule">
+
+<header class="nav" id="nav">
+    <div class="container nav__inner">
+        <a class="brand" href="index.html">
+      <span class="brand__mark">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
+        </svg>
+      </span>
+            <span class="brand__text">Fit<em>Pulse</em></span>
+        </a>
+        <nav class="nav__links" aria-label="Main">
+            <a href="index.html#variations">Variations</a>
+            <a href="about.html">Why</a>
+            <a href="team.html">Team</a>
+            <a href="schedule.html" class="btn btn--primary btn--sm">Set a Reminder</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+
+    <section class="page-head">
+        <div class="container">
+            <p class="eyebrow"><span class="dot"></span> Personal reminder</p>
+            <h1>Schedule your next workout</h1>
+            <p>Pick a variation, choose exactly when you want to be reminded, and we'll email you a matching workout plan with real exercise photos at that moment.</p>
+        </div>
+    </section>
+
+    <section class="container schedule-layout">
+
+        <div class="card">
+            <h2 class="card__title">Reminder details</h2>
+            <p class="card__sub">All fields marked with <span class="accent">*</span> are required.</p>
+
+            <form id="reminder-form" novalidate>
+
+                <div class="form-grid">
+
+                    <div class="field field--full">
+                        <label for="fullName">Your Name <span class="req">*</span></label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Alex Rivera" autocomplete="name" required />
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field field--full">
+                        <label for="email">Email Address <span class="req">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="alex@example.com" autocomplete="email" required />
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field field--full">
+                        <label for="variation">Workout Variation <span class="req">*</span></label>
+                        <select id="variation" name="variation" required></select>
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="date">Reminder Date <span class="req">*</span></label>
+                        <input type="date" id="date" name="date" required />
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="time">Reminder Time <span class="req">*</span></label>
+                        <input type="time" id="time" name="time" value="07:00" required />
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="repeat">Repeat <span class="req">*</span></label>
+                        <select id="repeat" name="repeat" required>
+                            <option value="Once">Once</option>
+                            <option value="Daily">Every day</option>
+                            <option value="Weekdays">Weekdays (Mon–Fri)</option>
+                            <option value="Weekly">Every week</option>
+                        </select>
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="level">Fitness Level <span class="req">*</span></label>
+                        <select id="level" name="level" required>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field field--full">
+                        <label for="notes">Notes <span class="field__hint">(optional)</span></label>
+                        <input type="text" id="notes" name="notes" placeholder="Goals, injuries, anything you want in the reminder…" />
+                        <span class="field__error"></span>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" id="submit-btn" class="btn btn--primary">Schedule My Reminder</button>
+                    <p class="form-actions__note">
+                        We'll email you a confirmation right now and the reminder will arrive at your chosen time.
+                    </p>
+                </div>
+
+            </form>
+
+            <div class="alert" id="form-status" role="status" aria-live="polite" hidden></div>
+        </div>
+
+        <aside class="preview-panel" id="preview">
+            <div class="preview-panel__head">
+                <h3 id="preview-title">Workout preview</h3>
+                <p>Live exercises with real photos matching the variation you pick. These land in your reminder email too.</p>
+            </div>
+            <div class="preview-panel__body" id="preview-body">
+                <div class="loading-block">
+                    <span class="spinner spinner--lg" aria-hidden="true"></span>
+                    <p>Loading preview…</p>
+                </div>
+            </div>
+            <div class="preview-panel__foot" id="preview-source">Loading…</div>
+        </aside>
+
+    </section>
+
+    <section class="container section" id="upcoming">
+        <div class="section__head">
+            <h2>Your upcoming reminders</h2>
+            <p>Saved locally in this browser. The nearest one also triggers a native notification while the tab is open.</p>
+        </div>
+        <div id="reminders-list" class="reminders-list">
+            <div class="empty-state">
+                <strong>No reminders yet</strong>
+                <p>Once you schedule one, it will appear here.</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <div class="container footer__inner">
+        <div>
+            <a class="brand" href="index.html">
+        <span class="brand__mark">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
+          </svg>
+        </span>
+                <span class="brand__text">Fit<em>Pulse</em></span>
+            </a>
+            <p class="footer__blurb">Personal fitness reminders, delivered on time.</p>
+        </div>
+        <div>
+            <h4>App</h4>
+            <ul>
+                <li><a href="index.html#variations">Variations</a></li>
+                <li><a href="index.html#how">How it works</a></li>
+                <li><a href="schedule.html">Set a reminder</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>About</h4>
+            <ul>
+                <li><a href="about.html">Why FitPulse</a></li>
+                <li><a href="team.html">The team</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="container footer__bottom">
+        <p>© <span id="year"></span> FitPulse. All rights reserved.</p>
+        <p class="footer__note">Train hard. Recover harder.</p>
+    </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+</script>
+<script type="text/javascript">
+    (function () {
+        if (window.emailjs) {
+            emailjs.init({ publicKey: "cIeRGuB2mD_8X6NQD" });
+        }
+    })();
+</script>
+<script src="script.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
