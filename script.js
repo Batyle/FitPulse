@@ -24,10 +24,11 @@
 
         EMAILJS: {
             serviceId:  'service_kmrvd4s',
-            templateId: 'template_x7z2cgf'
+            templateId: 'template_x7z2cgf',
+            publicKey:  'cIeRGuB2mD_8X6NQD'
         },
 
-        SCHEDULER_URL: '',
+        SCHEDULER_URL: 'https://script.google.com/macros/s/AKfycbxK4ESnY5JxhM7DeMUHvbYlRm5WMe0lexYsC1ywh6EqVSfh74qnSg7ILjiSYh62rbR3Tw/exec',
 
         SENDER: {
             name:    'FitPulse',
@@ -569,6 +570,7 @@
     const modalBody = $('#modal-body');
     const modalSource = $('#modal-source');
     const modalBook = $('#modal-book');
+    const PENDING_CUSTOMIZATION_KEY = 'fitpulse:pending-reminder-customization';
 
     let lastFocused = null;
     let modalToken = 0;
@@ -605,6 +607,7 @@
             const go = () => {
                 const key = modalPickKey;
                 if (!key) return;
+                saveModalCustomization(key);
                 window.location.href = `schedule.html?v=${encodeURIComponent(key)}`;
             };
             card.addEventListener('click', go);
@@ -614,10 +617,28 @@
         });
     }
 
+    function previewCustomizerMarkup(variation) {
+        return `<section class="preview-customizer" aria-label="Customize workout"><div class="preview-customizer__head"><strong>Make it yours</strong><span>Optional changes</span></div><div class="preview-customizer__grid"><label>Duration (minutes)<input id="preview-duration" type="number" min="5" max="180" value="${esc(variation.duration)}" /></label><label>Target for the day<select id="preview-target"><option value="">Choose a focus</option><option>Build strength</option><option>Improve endurance</option><option>Burn calories</option><option>Mobility &amp; recovery</option><option>Core stability</option><option>Stress relief</option></select></label><label>Fitness level<select id="preview-level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><label>Goal / note<input id="preview-notes" type="text" maxlength="120" placeholder="e.g. Focus on form today" /></label></div></section>`;
+    }
+
+    function saveModalCustomization(key) {
+        if (!key) return;
+        const duration = Number($('#preview-duration', modal)?.value);
+        const payload = { variationKey:key, duration:duration >= 5 && duration <= 180 ? duration : '', target:($('#preview-target', modal)?.value || '').trim(), level:($('#preview-level', modal)?.value || '').trim(), notes:($('#preview-notes', modal)?.value || '').trim() };
+        try { sessionStorage.setItem(PENDING_CUSTOMIZATION_KEY, JSON.stringify(payload)); } catch (_) {}
+    }
+
     if (modal) {
         $$('[data-close-modal]', modal).forEach((el) => el.addEventListener('click', closeModal));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
     }
+
+    if (modalBook) modalBook.addEventListener('click', (event) => {
+        if (!modalPickKey) return;
+        event.preventDefault();
+        saveModalCustomization(modalPickKey);
+        window.location.href = `schedule.html?v=${encodeURIComponent(modalPickKey)}`;
+    });
 
     const modalAddVariation = $('#modal-add-variation');
     if (modalAddVariation) {
@@ -646,7 +667,7 @@
         <h3>${esc(v.label)}</h3>
         <p>${esc(v.blurb)}</p>
         <ul class="variation-card__meta">
-          <li><strong>${v.duration}</strong> min</li>
+          <li><strong>${v.duration}</strong> minutes</li>
           <li>${esc(v.intensity)}</li>
           <li>All levels</li>
         </ul>
@@ -704,7 +725,7 @@
             });
             if (token !== modalToken) return;
 
-            modalBody.innerHTML = exerciseList(items, true);
+            modalBody.innerHTML = previewCustomizerMarkup(v) + exerciseList(items, true);
             modalSource.textContent =
                 `${items.length} exercises · ${sourceLabel(source)} · ${wgerCount} matched photos · tap any card to choose`;
             wireModalCardPicks();
@@ -727,6 +748,25 @@
        13. REMINDER STORAGE
        ======================================================= */
     const STORE_KEY = 'fitpulse:reminders';
+    const CURRENT_USER_KEY = 'fitpulse:current-user';
+
+    function currentUser() {
+        try {
+            const user = JSON.parse(localStorage.getItem(CURRENT_USER_KEY) || 'null');
+            return user && user.id && user.email ? user : null;
+        } catch (_) { return null; }
+    }
+
+    async function authOnServer(action, payload) {
+        const res = await fetch(CONFIG.SCHEDULER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(Object.assign({ action }, payload)),
+            redirect: 'follow'
+        });
+        const text = await res.text();
+        try { return JSON.parse(text); } catch (_) { throw new Error('The account service returned an invalid response.'); }
+    }
 
     function loadReminders() {
         try {
@@ -756,6 +796,13 @@
         return list;
     }
 
+    function updateReminder(reminder) {
+        const list = loadReminders().map((item) => item.id === reminder.id ? reminder : item);
+        list.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        saveReminders(list);
+        return list;
+    }
+
     /* =======================================================
        14. EMAIL LAYER
        ======================================================= */
@@ -779,37 +826,97 @@
         ).join('\n\n');
     }
 
+    /* Text-only workout table rendered by EmailJS through {{{workout_html}}}. */
     function buildWorkoutHtml(exercises) {
         if (!exercises || exercises.length === 0) {
-            return '<p style="padding:16px 18px;font-size:14px;color:#555560;">Your coach will walk you through the full session on the day.</p>';
+            return '<p style="padding:20px;font-size:14px;color:#a4a4b0;text-align:center;margin:0;">Your coach will walk you through the full session on the day.</p>';
+        }
+        function exerciseLabel(ex) {
+            return `<span style="display:inline-block;padding:5px 8px;border:1px solid #3a3a46;border-radius:6px;background:#24242d;color:#d7d7df;font-size:9px;font-weight:800;letter-spacing:0.8px;line-height:1.2;text-transform:uppercase;text-align:center;">${esc(exerciseCategory(ex))}</span>`;
+        }
+        function exerciseCategory(ex) {
+            const type = (String(ex.type || '') + ' ' + String(ex.muscle || '')).toLowerCase();
+            if (type.includes('cardio') || type.includes('plyo')) return 'Cardio';
+            if (type.includes('chest')) return 'Chest';
+            if (type.includes('bicep') || type.includes('arm') || type.includes('tricep')) return 'Arms';
+            if (type.includes('ab') || type.includes('core')) return 'Core';
+            if (type.includes('leg') || type.includes('quad') || type.includes('hamstring') || type.includes('calf')) return 'Legs';
+            if (type.includes('back') || type.includes('lat')) return 'Back';
+            if (type.includes('shoulder')) return 'Shoulders';
+            if (type.includes('stretch') || type.includes('mobility') || type.includes('yoga')) return 'Mobility';
+            if (type.includes('glute')) return 'Glutes';
+            return 'Training';
         }
         const rows = exercises.map((ex) => {
-            const imgCell = ex.image
-                ? `<td style="padding:10px 12px;border-bottom:1px solid #eaeaea;width:72px;vertical-align:middle;"><img src="${esc(ex.image)}" alt="${esc(ex.name)}" width="64" height="48" style="display:block;width:64px;height:48px;object-fit:cover;border-radius:6px;" /></td>`
-                : `<td style="padding:10px 12px;border-bottom:1px solid #eaeaea;width:72px;vertical-align:middle;"></td>`;
-            return `
-        <tr>
-          ${imgCell}
-          <td style="padding:10px 12px;border-bottom:1px solid #eaeaea;font-weight:600;color:#111;">${esc(ex.name)}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid #eaeaea;color:#555;">${esc(ex.muscle)}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid #eaeaea;color:#555;">${esc(ex.equipment)}</td>
-          <td style="padding:10px 12px;border-bottom:1px solid #eaeaea;color:#555;">${esc(ex.difficulty)}</td>
-        </tr>`;
+            const level = String(ex.difficulty || '').toLowerCase();
+            let color = '#a4a4b0', background = '#2a2a33';
+            if (level.includes('beg') || level.includes('easy')) { color = '#4ade80'; background = '#0f2e1d'; }
+            else if (level.includes('int') || level.includes('med')) { color = '#fbbf24'; background = '#2e2410'; }
+            else if (level.includes('adv') || level.includes('hard')) { color = '#f87171'; background = '#2e1516'; }
+            else if (level.includes('exp')) { color = '#c084fc'; background = '#261633'; }
+            const badge = `<span style="display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${color};background:${background};border:1px solid ${color}55;">${esc(titleCase(ex.difficulty || 'All levels'))}</span>`;
+            return `<tr><td style="padding:18px 20px;border-bottom:1px solid #2a2a33;width:56px;vertical-align:top;">${exerciseLabel(ex)}</td><td style="padding:18px 20px;border-bottom:1px solid #2a2a33;vertical-align:top;"><div style="font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;line-height:1.3;text-transform:capitalize;">${esc(titleCase(ex.name || ''))}</div><div style="margin-top:8px;font-size:13px;line-height:1.7;color:#a4a4b0;"><span style="color:#6a6a75;">Focus</span>&nbsp; ${esc(titleCase(ex.muscle || '—'))}<br><span style="color:#6a6a75;">Equipment</span>&nbsp; ${esc(titleCase(ex.equipment || '—'))}<br><span style="color:#6a6a75;">Type</span>&nbsp; ${esc(titleCase(ex.type || '—'))}</div><div style="margin-top:12px;">${badge}</div></td></tr>`;
         }).join('');
+        return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:separate;border-spacing:0;background:#1a1a20;border:1px solid #2a2a33;border-radius:14px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;"><tbody>${rows}</tbody></table>`;
+    }
 
-        return `
-      <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;">
-        <thead>
-          <tr style="background:#f5f5f5;">
-            <th align="left" style="padding:10px 12px;border-bottom:2px solid #ddd;width:72px;"></th>
-            <th align="left" style="padding:10px 12px;border-bottom:2px solid #ddd;">Exercise</th>
-            <th align="left" style="padding:10px 12px;border-bottom:2px solid #ddd;">Muscle</th>
-            <th align="left" style="padding:10px 12px;border-bottom:2px solid #ddd;">Equipment</th>
-            <th align="left" style="padding:10px 12px;border-bottom:2px solid #ddd;">Level</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    function buildEmailText(data, isConfirmation) {
+        const intro = isConfirmation
+            ? `Your ${data.variationLabel} reminder is confirmed.`
+            : `It's time for your ${data.variationLabel} session.`;
+        return `${intro}
+
+WHEN
+${formatLongDate(data.date)} at ${formatTime(data.time)}
+
+SESSION
+${data.duration} minutes · ${data.level} · ${data.repeatLabel}
+
+TARGET
+${data.target || 'No specific target selected.'}
+
+NOTES
+${data.notes || 'No notes added.'}
+
+YOUR WORKOUT
+${buildWorkoutText(data.exercises)}
+
+${CONFIG.SENDER.name} · ${CONFIG.SENDER.tagline}`;
+    }
+
+    function buildEmailHtml(data, isConfirmation) {
+        const heading = isConfirmation ? 'Your reminder is set' : 'Time to train';
+        const intro = isConfirmation
+            ? `Your <strong>${esc(data.variationLabel)}</strong> session is locked in. We’ll be here when it’s time to move.`
+            : `Your <strong>${esc(data.variationLabel)}</strong> session is ready. Take a breath, warm up, and get after it.`;
+        const notes = data.notes
+            ? `<tr><td style="padding:0 0 18px;"><div style="padding:14px 16px;border-radius:12px;background:#fff7f2;color:#5b3224;font-size:14px;line-height:1.55;"><strong style="display:block;margin-bottom:4px;color:#c84c1b;">Your note</strong>${esc(data.notes)}</div></td></tr>`
+            : '';
+        const target = data.target ? `<tr><td style="padding:0 32px 18px;"><div style="font-size:13px;color:#684536;"><strong style="color:#a4502f;">Today’s target:</strong> ${esc(data.target)}</div></td></tr>` : '';
+
+        return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#202126;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f3f4f6;padding:28px 12px;"><tr><td align="center">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(23,24,28,.10);">
+      <tr><td style="padding:28px 32px;background:linear-gradient(135deg,#111216,#2b1611);color:#ffffff;">
+        <div style="font-size:13px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase;color:#ff9b72;">FITPULSE · PERSONAL REMINDER</div>
+        <div style="padding-top:14px;font-size:30px;font-weight:800;line-height:1.15;">${heading}</div>
+        <div style="padding-top:10px;font-size:15px;line-height:1.55;color:#e2e4e9;">${intro}</div>
+      </td></tr>
+      <tr><td style="padding:28px 32px 12px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#fff4ef;border:1px solid #ffd6c5;border-radius:14px;"><tr>
+          <td style="padding:16px 18px;width:50%;border-right:1px solid #ffd6c5;"><div style="font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#a4502f;">When</div><div style="padding-top:5px;font-size:16px;font-weight:bold;color:#2b2020;">${esc(formatShortDate(data.date))}</div><div style="padding-top:3px;font-size:14px;color:#694b40;">${esc(formatTime(data.time))}</div></td>
+          <td style="padding:16px 18px;"><div style="font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#a4502f;">Session</div><div style="padding-top:5px;font-size:16px;font-weight:bold;color:#2b2020;">${esc(data.duration)} minutes · ${esc(data.level)}</div><div style="padding-top:3px;font-size:14px;color:#694b40;">${esc(data.repeatLabel)}</div></td>
+        </tr></table>
+      </td></tr>
+      ${notes}
+      ${target}
+      <tr><td style="padding:12px 32px 6px;font-size:20px;font-weight:800;color:#202126;">Your workout plan</td></tr>
+      <tr><td style="padding:8px 32px 24px;">${buildWorkoutHtml(data.exercises)}</td></tr>
+      <tr><td style="padding:18px 32px;background:#17181c;color:#c9cbd1;font-size:12px;line-height:1.5;">${esc(CONFIG.SENDER.tagline)}<br>Reminder reference: ${esc(data.id)}</td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
     }
 
     function buildEmailParams(data, opts) {
@@ -820,30 +927,40 @@
             ? `Reminder set — ${data.variationLabel} on ${formatShortDate(data.date)}`
             : `⏰ Time to train — ${data.variationLabel}`;
 
+        const emailText = buildEmailText(data, isConfirmation);
+        const emailHtml = buildEmailHtml(data, isConfirmation);
+
         return {
             to_name:  data.name,
             to_email: data.email,
             reply_to: CONFIG.SENDER.email,
-            subject,
+            subject: stripEmailEmoji(subject),
             heading: isConfirmation ? 'Your reminder is set ✅' : 'Your workout is waiting 💪',
+            heading: isConfirmation ? 'Your reminder is set' : 'Your workout is waiting',
             subheading: isConfirmation
                 ? `We'll email you again on ${formatLongDate(data.date)} at ${formatTime(data.time)}.`
                 : `It's time for your ${data.variationLabel} session.`,
 
             reminder_ref:    data.id,
             variation:       data.variationLabel,
-            variation_emoji: data.variationEmoji,
+            variation_emoji: '',
             class_date:      formatLongDate(data.date),
             short_date:      formatShortDate(data.date),
             class_time:      formatTime(data.time),
             repeat_label:    data.repeatLabel,
             fitness_level:   data.level,
             duration_min:    String(data.duration),
+            target:          data.target || 'No specific target selected.',
             notes:           data.notes || 'None',
 
             workout_list:   buildWorkoutText(data.exercises),
             workout_html:   buildWorkoutHtml(data.exercises),
             exercise_count: String((data.exercises || []).length),
+            // `message` supports a plain EmailJS template; `email_html` powers
+            // the branded template documented in README.md.
+            message:        emailText,
+            email_text:     emailText,
+            email_html:     emailHtml,
 
             sender_name:    CONFIG.SENDER.name,
             sender_email:   CONFIG.SENDER.email,
@@ -852,6 +969,10 @@
 
             sent_at: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
         };
+    }
+
+    function stripEmailEmoji(value) {
+        return String(value || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').replace(/\s{2,}/g, ' ').trim();
     }
 
     async function sendEmail(data, opts) {
@@ -875,12 +996,19 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
-                    id: data.id, name: data.name, email: data.email,
+                    action: data.isUpdate ? 'update' : 'create',
+                    id: data.id, userId: data.userId || '', name: data.name, email: data.email,
                     variation: data.variationLabel, variationKey: data.variationKey,
                     date: data.date, time: data.time,
                     repeat: data.repeat, repeatLabel: data.repeatLabel,
-                    level: data.level, duration: data.duration, notes: data.notes,
+                    level: data.level, duration: data.duration, target: data.target, notes: data.notes,
                     exercises: data.exercises,
+                    emailjs: {
+                        serviceId: CONFIG.EMAILJS.serviceId,
+                        templateId: CONFIG.EMAILJS.templateId,
+                        publicKey: CONFIG.EMAILJS.publicKey,
+                        templateParams: buildEmailParams(data, { mode: 'reminder' })
+                    },
                     timezoneOffsetMinutes: new Date().getTimezoneOffset()
                 }),
                 redirect: 'follow'
@@ -917,7 +1045,7 @@
         const timer = setTimeout(() => {
             try {
                 new Notification(`Time for ${reminder.variationLabel}`, {
-                    body: `${reminder.duration} min · ${reminder.level}. Open FitPulse for your workout.`,
+                    body: `${reminder.duration} minutes · ${reminder.level}. Open FitPulse for your workout.`,
                     tag: reminder.id
                 });
             } catch (_) {}
@@ -964,11 +1092,13 @@
         </div>
         <ul class="reminder-card__meta">
           <li>${esc(r.level)}</li>
-          <li>${r.duration} min</li>
+          <li>${r.duration} minutes</li>
           <li>Ref ${esc(r.id)}</li>
         </ul>
         ${!isPast ? `<span class="reminder-card__countdown">${esc(countdownLabel(r.datetime))}</span>` : ''}
         <div class="reminder-card__actions">
+          <button class="btn btn--ghost" data-action="send-reminder-now" data-id="${esc(r.id)}">Send email now</button>
+          <button class="btn btn--primary" data-action="edit-reminder" data-id="${esc(r.id)}">Edit</button>
           <button class="btn btn--ghost" data-action="remove-reminder" data-id="${esc(r.id)}">Remove</button>
         </div>
       </article>`;
@@ -988,10 +1118,35 @@
     function initReminderDashboard() {
         const list = $('#reminders-list');
         if (!list) return;
-        list.addEventListener('click', (e) => {
+        list.addEventListener('click', async (e) => {
+            const sendBtn = e.target.closest('[data-action="send-reminder-now"]');
+            if (sendBtn) {
+                const reminder = loadReminders().find((item) => item.id === sendBtn.dataset.id);
+                if (!reminder) return;
+                const original = sendBtn.textContent;
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'Sending…';
+                try {
+                    await sendEmail(reminder, { mode: 'reminder' });
+                    toast(`Workout email sent to ${reminder.email}.`, 'success');
+                } catch (err) {
+                    console.error('[FitPulse] Immediate email failed:', err);
+                    toast(`Couldn't send the email: ${err.message || 'Please try again.'}`, 'error');
+                } finally {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = original;
+                }
+                return;
+            }
+            const editBtn = e.target.closest('[data-action="edit-reminder"]');
+            if (editBtn) {
+                startEditingReminder(editBtn.dataset.id);
+                return;
+            }
             const btn = e.target.closest('[data-action="remove-reminder"]');
             if (!btn) return;
             const id = btn.dataset.id;
+            btn.disabled = true;
             const timer = notificationTimers.get(id);
             if (timer) { clearTimeout(timer); notificationTimers.delete(id); }
             removeReminder(id);
@@ -1007,6 +1162,43 @@
        17. SCHEDULE FORM
        ======================================================= */
     let previewExercises = [];
+
+    function setReminderId(form, id) {
+        if (form.reminderId) form.reminderId.value = id || makeReminderId();
+    }
+
+    function setEditMode(form, reminder) {
+        const isEditing = Boolean(reminder);
+        form.dataset.editingId = isEditing ? reminder.id : '';
+        setReminderId(form, isEditing ? reminder.id : '');
+        const submit = $('#submit-btn');
+        if (submit) submit.textContent = isEditing ? 'Save Reminder Changes' : 'Schedule My Reminder';
+        const cancel = $('#cancel-edit-btn');
+        if (cancel) cancel.hidden = !isEditing;
+    }
+
+    function startEditingReminder(id) {
+        const form = $('#reminder-form');
+        const reminder = loadReminders().find((item) => item.id === id);
+        if (!form || !reminder) return;
+
+        form.fullName.value = reminder.name || '';
+        form.email.value = reminder.email || '';
+        form.variation.value = reminder.variationKey || 'strength';
+        form.date.value = reminder.date || '';
+        form.time.value = reminder.time || '07:00';
+        form.repeat.value = reminder.repeat || 'Once';
+        form.level.value = reminder.level || 'Beginner';
+        if (form.durationOverride) form.durationOverride.value = reminder.duration || '';
+        if (form.target) form.target.value = reminder.target || '';
+        if (form.notes) form.notes.value = reminder.notes || '';
+        setEditMode(form, reminder);
+        clearStatus();
+        clearInvalid(form);
+        form.variation.dispatchEvent(new Event('change'));
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => form.date.focus(), 350);
+    }
 
     function populateVariationSelect() {
         const select = $('#variation');
@@ -1143,18 +1335,21 @@
         const dt = new Date(`${date}T${(time || '07:00')}:00`);
 
         return {
-            id: makeReminderId(),
+            id: (form.reminderId && form.reminderId.value) || makeReminderId(),
+            isUpdate: Boolean(form.dataset.editingId),
+            userId: (currentUser() || {}).id || '',
             name:  (form.fullName.value || '').trim(),
             email: (form.email.value || '').trim(),
             variationKey: key,
             variationLabel: v.label,
             variationEmoji: v.emoji,
-            duration: v.duration,
+            duration: Math.max(5, Math.min(180, Number(form.durationOverride && form.durationOverride.value) || v.duration)),
             date, time,
             datetime: isNaN(dt) ? '' : dt.toISOString(),
             repeat: form.repeat.value,
             repeatLabel: form.repeat.value,
             level: form.level.value,
+            target: (form.target && form.target.value || '').trim(),
             notes: (form.notes.value || '').trim()
         };
     }
@@ -1271,8 +1466,37 @@
         const preKey = (params.get('v') || '').toLowerCase();
         if (getAllVariations()[preKey]) form.variation.value = preKey;
 
+        try {
+            const pending = JSON.parse(sessionStorage.getItem(PENDING_CUSTOMIZATION_KEY) || 'null');
+            if (pending && (!pending.variationKey || pending.variationKey === form.variation.value)) {
+                if (pending.duration && form.durationOverride) form.durationOverride.value = pending.duration;
+                if (pending.target && form.target) form.target.value = pending.target;
+                if (pending.level && form.level) form.level.value = pending.level;
+                if (pending.notes && form.notes) form.notes.value = pending.notes;
+            }
+        } catch (_) {}
+
         const dateInput = form.date;
         if (dateInput) dateInput.min = todayISO();
+
+        const user = currentUser();
+        if (user) {
+            if (!form.fullName.value) form.fullName.value = user.name || '';
+            if (!form.email.value) form.email.value = user.email || '';
+        }
+
+        setEditMode(form, null);
+
+        const cancelEdit = $('#cancel-edit-btn');
+        if (cancelEdit) cancelEdit.addEventListener('click', () => {
+            form.reset();
+            setEditMode(form, null);
+            clearInvalid(form);
+            clearStatus();
+            if (dateInput) dateInput.min = todayISO();
+            const select = $('#variation');
+            if (select) select.dispatchEvent(new Event('change'));
+        });
 
         clearInvalid(form);
 
@@ -1301,7 +1525,8 @@
 
             try {
                 await requestNotificationPermission();
-                addReminder(data);
+                if (data.isUpdate) updateReminder(data);
+                else addReminder(data);
                 renderReminders();
                 scheduleBrowserNotification(data);
 
@@ -1316,7 +1541,7 @@
                     : 'Saved locally. Add a Scheduler URL in the config to enable scheduled email delivery.';
 
                 showStatus('success',
-                    `<strong>Reminder set, ${esc(data.name.split(' ')[0])}!</strong>
+                    `<strong>Reminder ${data.isUpdate ? 'updated' : 'set'}, ${esc(data.name.split(' ')[0])}!</strong>
            <p>${esc(data.variationLabel)} on <strong>${esc(formatLongDate(data.date))}</strong>
            at <strong>${esc(formatTime(data.time))}</strong>. ${esc(schedulerNote)}</p>
            <span class="booking-id">${esc(data.id)}</span>`);
@@ -1324,6 +1549,8 @@
                 toast('Reminder scheduled.', 'success');
 
                 form.reset();
+                setEditMode(form, null);
+                try { sessionStorage.removeItem(PENDING_CUSTOMIZATION_KEY); } catch (_) {}
                 clearInvalid(form);
                 if (dateInput) dateInput.min = todayISO();
 
@@ -1350,6 +1577,77 @@
         const onScroll = () => nav.classList.toggle('nav--scrolled', window.scrollY > 8);
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
+    }
+
+    function initLoginForm() {
+        const form = $('#login-form');
+        if (!form) return;
+        const status = $('#login-status');
+        const mode = $('#account-mode');
+        const nameField = $('#login-name-field');
+        const passwordField = $('#login-password-field');
+        const resetCodeField = $('#reset-code-field');
+        const title = $('#login-title');
+        const submit = $('#login-submit');
+        let resetRequested = false;
+        const existing = currentUser();
+        if (existing) {
+            status.textContent = `Signed in as ${existing.name || existing.email}.`;
+            status.hidden = false;
+        }
+        const syncMode = () => {
+            const registering = mode.value === 'register';
+            const recovering = mode.value === 'forgot';
+            nameField.hidden = !registering;
+            passwordField.hidden = recovering && !resetRequested;
+            resetCodeField.hidden = !recovering || !resetRequested;
+            form.password.required = !recovering || resetRequested;
+            form.code.required = recovering && resetRequested;
+            title.textContent = registering ? 'Create your FitPulse account' : recovering ? 'Reset your password' : 'Welcome back';
+            submit.textContent = registering ? 'Create account' : recovering ? (resetRequested ? 'Reset password' : 'Email reset code') : 'Log in';
+        };
+        mode.addEventListener('change', () => { resetRequested = false; syncMode(); });
+        syncMode();
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            status.hidden = true;
+            const email = form.email.value.trim().toLowerCase();
+            const password = form.password.value;
+            const name = form.name.value.trim();
+            const recovering = mode.value === 'forgot';
+            const needsPassword = !recovering || resetRequested;
+            if (!/^\S+@\S+\.\S+$/.test(email) || (needsPassword && password.length < 8) || (mode.value === 'register' && name.length < 2) || (recovering && resetRequested && !/^\d{6}$/.test(form.code.value.trim()))) {
+                status.textContent = recovering && resetRequested
+                    ? 'Enter the six-digit code and a password with at least 8 characters.'
+                    : recovering ? 'Enter a valid email address.' : 'Enter a name, valid email, and a password with at least 8 characters.';
+                status.hidden = false;
+                return;
+            }
+            submit.disabled = true;
+            const label = submit.textContent;
+            submit.textContent = 'Please wait…';
+            try {
+                const action = recovering ? (resetRequested ? 'resetPassword' : 'requestReset') : mode.value;
+                const result = await authOnServer(action, { name, email, password, code: form.code.value.trim() });
+                if (action === 'requestReset') {
+                    resetRequested = true;
+                    status.textContent = result.message || 'If an account matches that email, we sent a six-digit reset code.';
+                    status.hidden = false;
+                    syncMode();
+                    form.code.focus();
+                    return;
+                }
+                if (!result || result.status !== 'ok' || !result.user) throw new Error((result && result.message) || 'Unable to access your account.');
+                localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(result.user));
+                window.location.href = 'schedule.html';
+            } catch (err) {
+                status.textContent = err.message || 'Unable to access your account.';
+                status.hidden = false;
+            } finally {
+                submit.disabled = false;
+                submit.textContent = label;
+            }
+        });
     }
 
     /* =======================================================
@@ -1406,6 +1704,8 @@
                 setTimeout(openCustomModal, 250);
             }
         }
+
+        if (page === 'login') initLoginForm();
     }
 
     if (document.readyState === 'loading') {
@@ -1417,6 +1717,7 @@
     window.FitPulse = {
         getExercises,
         getExercisesWithImages,
+        buildWorkoutHtml,
         getVariationHeroImage,
         fetchWgerByCategory,
         fetchWgerById,

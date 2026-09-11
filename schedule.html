@@ -28,6 +28,7 @@
             <a href="index.html#variations">Variations</a>
             <a href="about.html">Why</a>
             <a href="team.html">Team</a>
+            <a href="login.html">Log in</a>
             <a href="schedule.html" class="btn btn--primary btn--sm">Set a Reminder</a>
         </nav>
     </div>
@@ -52,6 +53,12 @@
             <form id="reminder-form" novalidate>
 
                 <div class="form-grid">
+
+                    <div class="field field--full">
+                        <label for="reminderId">Your Reminder ID</label>
+                        <input type="text" id="reminderId" name="reminderId" readonly aria-describedby="reminder-id-hint" />
+                        <span class="field__hint" id="reminder-id-hint">Keep this ID to identify or edit your reminder later.</span>
+                    </div>
 
                     <div class="field field--full">
                         <label for="fullName">Your Name <span class="req">*</span></label>
@@ -107,6 +114,17 @@
                         <span class="field__error"></span>
                     </div>
 
+                    <div class="field">
+                        <label for="durationOverride">Workout Duration (minutes) <span class="field__hint">(optional)</span></label>
+                        <input type="number" id="durationOverride" name="durationOverride" min="5" max="180" placeholder="Use variation default in minutes" />
+                        <span class="field__error"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="target">Today's Target <span class="field__hint">(optional)</span></label>
+                        <select id="target" name="target"><option value="">Choose a focus</option><option>Build strength</option><option>Improve endurance</option><option>Burn calories</option><option>Mobility &amp; recovery</option><option>Core stability</option><option>Stress relief</option></select>
+                    </div>
+
                     <div class="field field--full">
                         <label for="notes">Notes <span class="field__hint">(optional)</span></label>
                         <input type="text" id="notes" name="notes" placeholder="Goals, injuries, anything you want in the reminder…" />
@@ -117,6 +135,7 @@
 
                 <div class="form-actions">
                     <button type="submit" id="submit-btn" class="btn btn--primary">Schedule My Reminder</button>
+                    <button type="button" id="cancel-edit-btn" class="btn btn--ghost" hidden>Cancel editing</button>
                     <p class="form-actions__note">
                         We'll email you a confirmation right now and the reminder will arrive at your chosen time.
                     </p>
@@ -218,7 +237,7 @@
                     <input type="text" id="custom-emoji" placeholder="🥊" maxlength="4" />
                 </div>
                 <div class="field">
-                    <label for="custom-duration">Duration (min)</label>
+                    <label for="custom-duration">Duration (minutes)</label>
                     <input type="number" id="custom-duration" value="30" min="5" max="180" />
                 </div>
                 <div class="field field--full">
