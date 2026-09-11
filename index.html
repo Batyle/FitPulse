@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FitPulse — Personal Fitness Reminders</title>
-  <meta name="description" content="Set personal fitness reminders with a matching workout plan and live exercise photos." />
+  <title>FitPulse — Personal Workout Reminders</title>
   <meta name="theme-color" content="#101014" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +17,7 @@
   <div class="container nav__inner">
     <a class="brand" href="index.html">
       <span class="brand__mark">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
         </svg>
       </span>
@@ -28,25 +27,25 @@
       <a href="index.html#variations">Variations</a>
       <a href="about.html">Why</a>
       <a href="team.html">Team</a>
+      <a href="dashboard.html">Backlog</a>
       <a href="schedule.html" class="btn btn--primary btn--sm">Set a Reminder</a>
     </nav>
   </div>
 </header>
 
 <main>
-
   <section class="hero">
     <div class="hero__glow" aria-hidden="true"></div>
     <div class="container hero__inner">
-      <p class="eyebrow"><span class="dot"></span> Personal fitness reminders · delivered on time</p>
+      <p class="eyebrow"><span class="dot"></span> Personal workout reminders · delivered on time</p>
       <h1 class="hero__title">
         Never miss a workout<br />
         <span class="accent">ever again.</span>
       </h1>
       <p class="hero__sub">
         Pick a workout variation, choose the exact date and time, and FitPulse
-        sends a scheduled reminder to your inbox — complete with real exercise
-        photos and a matching workout plan for the day.
+        sends a scheduled reminder to your inbox — complete with reference
+        photos and step-by-step instructions.
       </p>
       <div class="hero__actions">
         <a href="schedule.html" class="btn btn--primary btn--lg">Set My First Reminder</a>
@@ -57,41 +56,28 @@
         <li><strong>Scheduled</strong><span>Email delivery</span></li>
         <li><strong>Live</strong><span>Exercise photos</span></li>
       </ul>
+      <div class="hero__quote" id="hero-quote" aria-live="polite">
+        <span class="hero__quote-mark">"</span>
+        <p class="hero__quote-text">Loading today's motivation…</p>
+        <p class="hero__quote-author">—</p>
+      </div>
     </div>
   </section>
 
   <section class="section" id="how">
     <div class="container">
-      <div class="section__head">
-        <h2>How it works</h2>
-        <p>Three steps. Nothing to install.</p>
-      </div>
+      <div class="section__head"><h2>How it works</h2><p>Three steps. Nothing to install.</p></div>
       <div class="steps">
-        <div class="step-card">
-          <span class="step-card__num">01</span>
-          <h3>Pick a variation</h3>
-          <p>Yoga flow, HIIT blast, strength, cardio, mobility — or create your own custom style.</p>
-        </div>
-        <div class="step-card">
-          <span class="step-card__num">02</span>
-          <h3>Choose date &amp; time</h3>
-          <p>Set exactly when you want to be reminded. One-time or on a repeating schedule.</p>
-        </div>
-        <div class="step-card">
-          <span class="step-card__num">03</span>
-          <h3>Get your reminder</h3>
-          <p>A scheduled email lands at your chosen time with the workout plan for the day.</p>
-        </div>
+        <div class="step-card"><span class="step-card__num">01</span><h3>Pick a variation</h3><p>Yoga flow, HIIT blast, strength, cardio, mobility — or create your own custom style.</p></div>
+        <div class="step-card"><span class="step-card__num">02</span><h3>Choose date &amp; time</h3><p>Set exactly when you want to be reminded. One-time or on a repeating schedule.</p></div>
+        <div class="step-card"><span class="step-card__num">03</span><h3>Get your reminder</h3><p>A PDF with photos and instructions lands in your inbox instantly.</p></div>
       </div>
     </div>
   </section>
 
   <section class="section" id="variations">
     <div class="container">
-      <div class="section__head">
-        <h2>Workout variations</h2>
-        <p>Every variation is mapped to a live exercise library with real photos. Preview exactly what you'll be doing.</p>
-      </div>
+      <div class="section__head"><h2>Workout variations</h2><p>Every variation is mapped to a live exercise library. Preview exactly what you'll be doing.</p></div>
       <div class="variation-grid" id="variation-grid"></div>
     </div>
   </section>
@@ -99,45 +85,28 @@
   <section class="section">
     <div class="container">
       <div class="cta-strip">
-        <div>
-          <h2>Your future self is counting on you.</h2>
-          <p>Set a reminder for tomorrow morning and see how much easier it is to show up.</p>
-        </div>
+        <div><h2>Your future self is counting on you.</h2><p>Set a reminder for tomorrow morning and see how much easier it is to show up.</p></div>
         <a href="schedule.html" class="btn btn--primary btn--lg">Schedule a Reminder</a>
       </div>
     </div>
   </section>
-
 </main>
 
 <footer class="footer">
   <div class="container footer__inner">
     <div>
-      <a class="brand" href="index.html">
-        <span class="brand__mark">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
-          </svg>
-        </span>
-        <span class="brand__text">Fit<em>Pulse</em></span>
-      </a>
-      <p class="footer__blurb">Personal fitness reminders, delivered on time.<br />Made for people who train on their own schedule.</p>
+      <a class="brand" href="index.html"><span class="brand__mark">FC</span><span class="brand__text">Fit<em>Pulse</em></span></a>
+      <p class="footer__blurb">Personal workout reminders, delivered on time.</p>
     </div>
-    <div>
-      <h4>App</h4>
-      <ul>
-        <li><a href="index.html#variations">Variations</a></li>
-        <li><a href="index.html#how">How it works</a></li>
-        <li><a href="schedule.html">Set a reminder</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>About</h4>
-      <ul>
-        <li><a href="about.html">Why FitPulse</a></li>
-        <li><a href="team.html">The team</a></li>
-      </ul>
-    </div>
+    <div><h4>App</h4><ul>
+      <li><a href="index.html#variations">Variations</a></li>
+      <li><a href="dashboard.html">Backlog</a></li>
+      <li><a href="schedule.html">Set a reminder</a></li>
+    </ul></div>
+    <div><h4>About</h4><ul>
+      <li><a href="about.html">Why FitPulse</a></li>
+      <li><a href="team.html">The team</a></li>
+    </ul></div>
   </div>
   <div class="container footer__bottom">
     <p>© <span id="year"></span> FitPulse. All rights reserved.</p>
@@ -147,40 +116,230 @@
 
 <div class="modal" id="modal" hidden>
   <div class="modal__overlay" data-close-modal></div>
-  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal__panel" role="dialog" aria-modal="true">
     <header class="modal__head">
-      <div>
-        <p class="modal__eyebrow" id="modal-eyebrow">Sample exercises</p>
-        <h3 id="modal-title">Variation</h3>
-      </div>
+      <div><p class="modal__eyebrow" id="modal-eyebrow">Sample exercises</p><h3 id="modal-title">Variation</h3></div>
       <button class="icon-btn" type="button" data-close-modal aria-label="Close">✕</button>
     </header>
     <div class="modal__body" id="modal-body"></div>
     <footer class="modal__foot">
       <p class="modal__source" id="modal-source"></p>
-      <div class="modal__foot-actions">
-        <button type="button" class="btn btn--ghost btn--sm" id="modal-add-variation">
-          + Add custom variation
-        </button>
-        <a class="btn btn--primary" id="modal-book" href="schedule.html">Set a Reminder</a>
-      </div>
+      <a class="btn btn--primary" id="modal-book" href="schedule.html">Set a Reminder</a>
     </footer>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-</script>
-<script type="text/javascript">
-  (function () {
-    if (window.emailjs) {
-      emailjs.init({ publicKey: "cIeRGuB2mD_8X6NQD" });
+<script type="module">
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+  function titleCase(s) {
+    return String(s || "").toLowerCase().split(/\s+/).filter(Boolean)
+            .map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+  }
+  function truncate(s, n) {
+    const str = String(s || "").replace(/\s+/g, " ").trim();
+    return str.length > n ? str.slice(0, n - 1).trimEnd() + "…" : str;
+  }
+  function stripHtml(h) {
+    if (!h) return "";
+    const t = document.createElement("div");
+    t.innerHTML = h;
+    return (t.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  const VARIATIONS = {
+    yoga:     { label: "Yoga Flow",         emoji: "🧘", tag: "Mobility",     blurb: "Slow flow, deep stretch and breath work to open up and reset.", duration: 45, intensity: "Low impact",  wgerCategory: 12 },
+    hiit:     { label: "HIIT Blast",        emoji: "🔥", tag: "Conditioning", blurb: "Short, brutal, effective intervals that keep burning for hours.", duration: 30, intensity: "High impact", wgerCategory: 9  },
+    strength: { label: "Strength Builder",  emoji: "💪", tag: "Iron",         blurb: "Progressive barbell and dumbbell work to build your base.", duration: 50, intensity: "Low impact",  wgerCategory: 8  },
+    cardio:   { label: "Cardio Sprint",     emoji: "🏃", tag: "Endurance",    blurb: "Steady-state and interval cardio to build your engine.", duration: 35, intensity: "Med impact",  wgerCategory: 15 },
+    mobility: { label: "Mobility & Stretch",emoji: "🤍", tag: "Recovery",     blurb: "Joint-friendly mobility work to keep you moving pain-free.", duration: 25, intensity: "Low impact",  wgerCategory: 12 },
+    pilates:  { label: "Core Pilates",      emoji: "🤸", tag: "Core",         blurb: "Control, alignment and a core that actually shows up.", duration: 40, intensity: "Low impact",  wgerCategory: 10 },
+    spin:     { label: "Spin Endurance",    emoji: "🚴", tag: "Endurance",    blurb: "Climb, sprint, recover — a properly loud indoor ride.", duration: 45, intensity: "Med impact",  wgerCategory: 9  },
+    dance:    { label: "Dance Cardio",      emoji: "💃", tag: "Dance",        blurb: "Latin rhythms, big energy, no choreography stress required.", duration: 45, intensity: "Med impact",  wgerCategory: 9  }
+  };
+  const KEYS = Object.keys(VARIATIONS);
+  const WGER = "https://wger.de/api/v2";
+
+  function normalizeWger(ex) {
+    const imgs = Array.isArray(ex.images) ? ex.images : [];
+    const main = imgs.find(i => i.is_main) || imgs[0] || null;
+    const trans = Array.isArray(ex.translations) ? ex.translations : [];
+    const eng = trans.find(t => Number(t.language) === 2) || trans[0] || {};
+    const muscles = Array.isArray(ex.muscles) ? ex.muscles : [];
+    const equip = Array.isArray(ex.equipment) ? ex.equipment : [];
+    let instr = "";
+    if (Array.isArray(ex.instructions) && ex.instructions.length) {
+      instr = ex.instructions.map(stripHtml).filter(Boolean).join(" ");
     }
-  })();
+    if (!instr) instr = stripHtml(eng.description || ex.description || "");
+    return {
+      name: eng.name || ex.name || "Exercise",
+      type: ex.category ? ex.category.name : "Workout",
+      muscle: muscles[0] ? muscles[0].name : "Full body",
+      equipment: equip[0] ? equip[0].name : "Bodyweight",
+      difficulty: "All levels",
+      instructions: instr,
+      image: main ? (main.thumbnails && main.thumbnails.medium) || main.image : ""
+    };
+  }
+
+  async function fetchWgerCategory(catId) {
+    try {
+      const r = await fetch(WGER + "/exerciseinfo/?category=" + catId + "&limit=10&language=2");
+      if (!r.ok) throw new Error("wger " + r.status);
+      const d = await r.json();
+      return (d.results || []).map(normalizeWger).filter(x => x.image);
+    } catch { return []; }
+  }
+
+  async function fetchQuote() {
+    try {
+      const r = await fetch("https://zenquotes.io/api/random");
+      const d = await r.json();
+      const q = Array.isArray(d) ? d[0] : d;
+      return { text: q.q || "Discipline beats motivation.", author: q.a || "FitPulse" };
+    } catch {
+      return { text: "Discipline beats motivation.", author: "FitPulse" };
+    }
+  }
+
+  function levelClass(raw) {
+    const v = String(raw || "").toLowerCase().trim();
+    if (v.startsWith("beg") || v === "easy") return "beginner";
+    if (v.startsWith("int") || v === "medium") return "intermediate";
+    if (v.startsWith("adv") || v === "hard") return "advanced";
+    return "beginner";
+  }
+
+  function variationCard(key, heroImage) {
+    const v = VARIATIONS[key];
+    const media = heroImage
+            ? '<div class="variation-card__media"><img src="' + esc(heroImage) + '" alt="' + esc(v.label) + '" loading="lazy" /></div>'
+            : '<div class="variation-card__media is-loading"></div>';
+    return '<article class="variation-card" data-variation="' + key + '">' +
+            media +
+            '<div class="variation-card__head"><span class="variation-card__emoji">' + v.emoji + '</span><span class="pill">' + esc(v.tag) + '</span></div>' +
+            '<h3>' + esc(v.label) + '</h3><p>' + esc(v.blurb) + '</p>' +
+            '<ul class="variation-card__meta"><li><strong>' + v.duration + '</strong> min</li><li>' + esc(v.intensity) + '</li><li>All levels</li></ul>' +
+            '<div class="variation-card__actions">' +
+            '<button class="btn btn--ghost" data-action="view-exercises" data-variation="' + key + '">Preview</button>' +
+            '<a class="btn btn--primary" href="schedule.html?v=' + encodeURIComponent(key) + '">Set Reminder</a>' +
+            '</div></article>';
+  }
+
+  async function renderGrid() {
+    const grid = $("#variation-grid");
+    if (!grid) return;
+    grid.innerHTML = KEYS.map(k => variationCard(k, "")).join("");
+    KEYS.forEach(async key => {
+      const items = await fetchWgerCategory(VARIATIONS[key].wgerCategory);
+      if (!items.length) return;
+      const pick = items[Math.floor(Math.random() * items.length)];
+      const card = grid.querySelector('[data-variation="' + key + '"]');
+      if (!card || !pick.image) return;
+      const media = card.querySelector(".variation-card__media");
+      if (media) {
+        media.classList.remove("is-loading");
+        media.innerHTML = '<img src="' + esc(pick.image) + '" alt="' + esc(VARIATIONS[key].label) + '" loading="lazy" />';
+      }
+    });
+  }
+
+  const modal = $("#modal");
+  function openModal(opts) {
+    $("#modal-title").textContent = opts.title || "";
+    $("#modal-eyebrow").textContent = opts.eyebrow || "";
+    $("#modal-body").innerHTML = opts.body || "";
+    $("#modal-source").textContent = opts.source || "";
+    const book = $("#modal-book");
+    if (book) book.href = opts.href || "schedule.html";
+    modal.hidden = false;
+    document.body.classList.add("modal-open");
+  }
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove("modal-open");
+  }
+  if (modal) {
+    $$("[data-close-modal]", modal).forEach(el => el.addEventListener("click", closeModal));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  }
+
+  function exerciseCard(ex) {
+    const cls = levelClass(ex.difficulty);
+    const media = ex.image
+            ? '<div class="ex-card__media"><img src="' + esc(ex.image) + '" alt="' + esc(ex.name) + '" loading="lazy" /></div>'
+            : '<div class="ex-card__media ex-card__media--placeholder"></div>';
+    return '<article class="ex-card">' + media +
+            '<div class="ex-card__top"><h4 class="ex-card__name">' + esc(titleCase(ex.name)) + '</h4>' +
+            '<span class="badge badge--' + cls + '">' + esc(titleCase(ex.difficulty)) + '</span></div>' +
+            '<div class="ex-card__meta">' +
+            '<div><span class="label">Muscle</span><span class="value">' + esc(titleCase(ex.muscle)) + '</span></div>' +
+            '<div><span class="label">Equipment</span><span class="value">' + esc(titleCase(ex.equipment)) + '</span></div>' +
+            '</div>' +
+            (ex.instructions ? '<p class="ex-card__instruction">' + esc(truncate(ex.instructions, 150)) + '</p>' : '') +
+            '</article>';
+  }
+
+  async function openPreview(key) {
+    const v = VARIATIONS[key];
+    if (!v) return;
+    openModal({
+      eyebrow: "Sample exercises",
+      title: v.label + " — what you'll do",
+      body: '<div class="loading-block"><span class="spinner spinner--lg"></span><p>Loading…</p></div>',
+      source: "",
+      href: "schedule.html?v=" + encodeURIComponent(key)
+    });
+    const items = (await fetchWgerCategory(v.wgerCategory)).slice(0, 5);
+    const body = $("#modal-body");
+    if (!items.length) {
+      body.innerHTML = '<div class="empty-state"><strong>Couldn\'t load exercises</strong><p>Try again in a moment.</p></div>';
+      return;
+    }
+    body.innerHTML = '<div class="ex-list">' + items.map(exerciseCard).join("") + '</div>';
+    $("#modal-source").textContent = items.length + " exercises · Wger exercise library";
+  }
+
+  document.addEventListener("click", e => {
+    const btn = e.target.closest('[data-action="view-exercises"]');
+    if (btn) openPreview(btn.dataset.variation);
+  });
+
+  async function renderHeroQuote() {
+    const card = $("#hero-quote");
+    if (!card) return;
+    const q = await fetchQuote();
+    const t = card.querySelector(".hero__quote-text");
+    const a = card.querySelector(".hero__quote-author");
+    if (t) t.textContent = q.text;
+    if (a) a.textContent = "— " + q.author;
+  }
+
+  const nav = $("#nav");
+  if (nav) {
+    const onScroll = () => nav.classList.toggle("nav--scrolled", window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  function init() {
+    renderGrid();
+    renderHeroQuote();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else { init(); }
 </script>
-<script src="script.js"></script>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
