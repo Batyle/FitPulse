@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Set a Reminder — FitPulse</title>
-    <meta name="description" content="Schedule a personal fitness reminder with a matching workout preview." />
+    <meta name="description" content="Schedule a personal workout reminder with a matching exercise plan." />
     <meta name="theme-color" content="#101014" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +18,7 @@
     <div class="container nav__inner">
         <a class="brand" href="index.html">
       <span class="brand__mark">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
         </svg>
       </span>
@@ -28,6 +28,7 @@
             <a href="index.html#variations">Variations</a>
             <a href="about.html">Why</a>
             <a href="team.html">Team</a>
+            <a href="dashboard.html">Backlog</a>
             <a href="schedule.html" class="btn btn--primary btn--sm">Set a Reminder</a>
         </nav>
     </div>
@@ -37,9 +38,9 @@
 
     <section class="page-head">
         <div class="container">
-            <p class="eyebrow"><span class="dot"></span> Personal reminder</p>
-            <h1>Schedule your next workout</h1>
-            <p>Pick a variation, choose exactly when you want to be reminded, and we'll email you a matching workout plan with real exercise photos at that moment.</p>
+            <p class="eyebrow"><span class="dot"></span> Personal workout reminder</p>
+            <h1>Plan your next workout</h1>
+            <p>Pick a workout variation and a time. We'll email you a reminder with a personalised exercise plan — reference photos and step-by-step instructions included.</p>
         </div>
     </section>
 
@@ -56,70 +57,66 @@
                     <div class="field field--full">
                         <label for="fullName">Your Name <span class="req">*</span></label>
                         <input type="text" id="fullName" name="fullName" placeholder="Alex Rivera" autocomplete="name" required />
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field field--full">
                         <label for="email">Email Address <span class="req">*</span></label>
                         <input type="email" id="email" name="email" placeholder="alex@example.com" autocomplete="email" required />
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field field--full">
                         <label for="variation">Workout Variation <span class="req">*</span></label>
                         <select id="variation" name="variation" required></select>
-                        <span class="field__error"></span>
-                        <button type="button" class="btn btn--ghost btn--sm add-variation-btn" id="add-variation-btn">
-                            + Add a variation &amp; set another reminder
-                        </button>
+                        <span class="field__hint">Add or remove variations from the preview panel on the right.</span>
                     </div>
 
                     <div class="field">
                         <label for="date">Reminder Date <span class="req">*</span></label>
                         <input type="date" id="date" name="date" required />
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field">
                         <label for="time">Reminder Time <span class="req">*</span></label>
                         <input type="time" id="time" name="time" value="07:00" required />
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="repeat">Repeat <span class="req">*</span></label>
-                        <select id="repeat" name="repeat" required>
+                        <label for="repeat">Repeat</label>
+                        <select id="repeat" name="repeat">
                             <option value="Once">Once</option>
                             <option value="Daily">Every day</option>
-                            <option value="Weekdays">Weekdays (Mon–Fri)</option>
+                            <option value="Weekdays">Weekdays</option>
                             <option value="Weekly">Every week</option>
                         </select>
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field">
-                        <label for="level">Fitness Level <span class="req">*</span></label>
-                        <select id="level" name="level" required>
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
+                        <label for="level">Fitness Level</label>
+                        <select id="level" name="level">
+                            <option>Beginner</option>
+                            <option selected>Intermediate</option>
+                            <option>Advanced</option>
                         </select>
-                        <span class="field__error"></span>
                     </div>
 
                     <div class="field field--full">
                         <label for="notes">Notes <span class="field__hint">(optional)</span></label>
                         <input type="text" id="notes" name="notes" placeholder="Goals, injuries, anything you want in the reminder…" />
-                        <span class="field__error"></span>
                     </div>
 
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" id="submit-btn" class="btn btn--primary">Schedule My Reminder</button>
-                    <p class="form-actions__note">
-                        We'll email you a confirmation right now and the reminder will arrive at your chosen time.
-                    </p>
+                    <button type="submit" id="submit-btn" class="btn btn--primary">Send My Reminder</button>
+
+                    <button type="button" id="send-now-btn" class="btn btn--ghost" title="Send the email immediately">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                        Send Email Now
+                    </button>
+
+                    <p class="form-actions__note">We'll email you a PDF with your workout plan within seconds.</p>
                 </div>
 
             </form>
@@ -128,33 +125,43 @@
         </div>
 
         <aside class="preview-panel" id="preview">
+
             <div class="preview-panel__head">
                 <h3 id="preview-title">Workout preview</h3>
-                <p>Live exercises with real photos matching the variation you pick. These land in your reminder email too.</p>
+                <p id="preview-subtitle">Tap exercises to select them. Then add them as your own variation.</p>
+
+                <div class="preview-panel__actions">
+                    <button type="button" class="btn btn--ghost btn--sm" id="add-variation-btn">
+                        + Add variation
+                    </button>
+                    <button type="button" class="btn btn--ghost btn--sm" id="remove-variation-btn" disabled>
+                        − Remove variation
+                    </button>
+                </div>
+
+                <div class="custom-variation-list" id="custom-chips"></div>
             </div>
+
+            <div class="preview-panel__selection" id="preview-selection" hidden>
+                <span class="preview-panel__selection-count" id="preview-selection-count">0 selected</span>
+                <button type="button" class="preview-panel__selection-clear" id="clear-selection-btn">
+                    Clear selection
+                </button>
+            </div>
+
             <div class="preview-panel__body" id="preview-body">
                 <div class="loading-block">
                     <span class="spinner spinner--lg" aria-hidden="true"></span>
                     <p>Loading preview…</p>
                 </div>
             </div>
-            <div class="preview-panel__foot" id="preview-source">Loading…</div>
+
+            <div class="preview-panel__foot">
+                <span id="preview-source">Loading…</span>
+            </div>
+
         </aside>
 
-    </section>
-
-    <section class="container section" id="upcoming">
-        <div class="section__head">
-            <h2>Your upcoming reminders</h2>
-            <p>Saved locally in this browser. The nearest one also triggers a native notification while the tab is open.</p>
-            <button type="button" class="btn btn--ghost btn--sm add-variation-btn" id="add-another-reminder-btn">+ Add another reminder</button>
-        </div>
-        <div id="reminders-list" class="reminders-list">
-            <div class="empty-state">
-                <strong>No reminders yet</strong>
-                <p>Once you schedule one, it will appear here.</p>
-            </div>
-        </div>
     </section>
 
 </main>
@@ -164,19 +171,19 @@
         <div>
             <a class="brand" href="index.html">
         <span class="brand__mark">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
           </svg>
         </span>
                 <span class="brand__text">Fit<em>Pulse</em></span>
             </a>
-            <p class="footer__blurb">Personal fitness reminders, delivered on time.</p>
+            <p class="footer__blurb">Personal workout reminders, delivered on time.</p>
         </div>
         <div>
             <h4>App</h4>
             <ul>
                 <li><a href="index.html#variations">Variations</a></li>
-                <li><a href="index.html#how">How it works</a></li>
+                <li><a href="dashboard.html">Backlog</a></li>
                 <li><a href="schedule.html">Set a reminder</a></li>
             </ul>
         </div>
@@ -196,47 +203,81 @@
 
 <div class="modal" id="custom-modal" hidden>
     <div class="modal__overlay" data-close-custom></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="custom-modal-title">
+    <div class="modal__panel modal__panel--wide" role="dialog" aria-modal="true" aria-labelledby="custom-modal-title">
         <header class="modal__head">
             <div>
                 <p class="modal__eyebrow">Custom variation</p>
-                <h3 id="custom-modal-title">Add your own workout</h3>
+                <h3 id="custom-modal-title">Build your own workout</h3>
             </div>
             <button class="icon-btn" type="button" data-close-custom aria-label="Close">✕</button>
         </header>
+
         <div class="modal__body">
+            <div class="custom-modal-grid">
 
-            <div class="field field--full">
-                <label for="custom-name">Variation name <span class="req">*</span></label>
-                <input type="text" id="custom-name" placeholder="e.g. Boxing, Swimming, Rowing" maxlength="40" />
-                <span class="field__error" id="custom-name-error"></span>
+                <div class="custom-modal-form">
+                    <div class="field field--full">
+                        <label for="custom-name">Variation name <span class="req">*</span></label>
+                        <input type="text" id="custom-name" placeholder="e.g. Boxing, Swimming, Rowing" maxlength="40" />
+                        <span class="field__error" id="custom-name-error"></span>
+                    </div>
+
+                    <div class="form-grid" style="margin-top:18px;">
+                        <div class="field">
+                            <label for="custom-emoji">Emoji (optional)</label>
+                            <input type="text" id="custom-emoji" placeholder="🥊" maxlength="4" />
+                        </div>
+                        <div class="field">
+                            <label for="custom-duration">Duration (min)</label>
+                            <input type="number" id="custom-duration" value="30" min="5" max="180" />
+                        </div>
+                    </div>
+
+                    <div class="field field--full" style="margin-top:18px;">
+                        <label for="custom-category">Muscle focus <span class="req">*</span></label>
+                        <select id="custom-category">
+                            <option value="15">Cardio / Full body</option>
+                            <option value="9">Legs</option>
+                            <option value="8">Arms</option>
+                            <option value="11">Chest</option>
+                            <option value="12">Back</option>
+                            <option value="10">Abs / Core</option>
+                            <option value="13">Shoulders</option>
+                            <option value="14">Calves</option>
+                        </select>
+                    </div>
+
+                    <div class="field field--full" style="margin-top:18px;">
+                        <label for="custom-keyword">Keyword search <span class="field__hint">(optional)</span></label>
+                        <input type="text" id="custom-keyword" placeholder="e.g. punch, squat, plank" maxlength="30" />
+                    </div>
+
+                    <div class="focus-preview">
+                        <div class="focus-preview__label">Exercises will be pulled from</div>
+                        <div class="focus-preview__value" id="focus-preview-value">Cardio / Full body</div>
+                    </div>
+                </div>
+
+                <div class="custom-modal-preview">
+                    <div class="custom-modal-preview__head">
+            <span class="custom-modal-preview__eyebrow">
+              <span class="custom-modal-preview__dot"></span>
+              Live preview
+            </span>
+                        <h4>Exercises you'll get</h4>
+                        <p>Fetched automatically from the Wger library.</p>
+                    </div>
+                    <div class="custom-modal-preview__body" id="modal-preview-body">
+                        <div class="loading-block loading-block--compact">
+                            <span class="spinner spinner--lg"></span>
+                            <p>Picking your exercises…</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-
-            <div class="form-grid" style="margin-top:18px;">
-                <div class="field">
-                    <label for="custom-emoji">Emoji (optional)</label>
-                    <input type="text" id="custom-emoji" placeholder="🥊" maxlength="4" />
-                </div>
-                <div class="field">
-                    <label for="custom-duration">Duration (min)</label>
-                    <input type="number" id="custom-duration" value="30" min="5" max="180" />
-                </div>
-                <div class="field field--full">
-                    <label for="custom-category">Exercise focus <span class="req">*</span></label>
-                    <select id="custom-category">
-                        <option value="15">Cardio</option>
-                        <option value="9">Legs</option>
-                        <option value="8">Arms</option>
-                        <option value="11">Chest</option>
-                        <option value="12">Back</option>
-                        <option value="10">Abs</option>
-                        <option value="13">Shoulders</option>
-                        <option value="14">Calves</option>
-                    </select>
-                </div>
-            </div>
-
         </div>
+
         <footer class="modal__foot">
             <p class="modal__source">Saved to this browser only.</p>
             <button type="button" class="btn btn--primary" id="save-custom-btn">Add Variation</button>
@@ -246,17 +287,842 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-</script>
-<script type="text/javascript">
-    (function () {
-        if (window.emailjs) {
-            emailjs.init({ publicKey: "cIeRGuB2mD_8X6NQD" });
+<script type="module">
+    import { db, ref, set, update } from "./firebase-config.js";
+
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxK4ESnY5JxhM7DeMUHvbYlRm5WMe0lexYsC1ywh6EqVSfh74qnSg7ILjiSYh62rbR3Tw/exec";
+    const WGER_BASE = "https://wger.de/api/v2";
+    const CUSTOM_VARIATIONS_KEY = "fitpulse:custom-variations";
+    const LOCAL_MIRROR_KEY = "fitpulse:backlog-mirror";
+
+    const VARIATIONS = {
+        yoga:     { label: "Yoga Flow",          emoji: "🧘", wgerCategory: 12, duration: 45 },
+        hiit:     { label: "HIIT Blast",         emoji: "🔥", wgerCategory: 9,  duration: 30 },
+        strength: { label: "Strength Builder",   emoji: "💪", wgerCategory: 8,  duration: 50 },
+        cardio:   { label: "Cardio Sprint",      emoji: "🏃", wgerCategory: 15, duration: 35 },
+        mobility: { label: "Mobility & Stretch", emoji: "🤍", wgerCategory: 12, duration: 25 },
+        pilates:  { label: "Core Pilates",       emoji: "🤸", wgerCategory: 10, duration: 40 },
+        spin:     { label: "Spin Endurance",     emoji: "🚴", wgerCategory: 9,  duration: 45 },
+        dance:    { label: "Dance Cardio",       emoji: "💃", wgerCategory: 9,  duration: 45 }
+    };
+
+    const CATEGORY_LABELS = {
+        15: "Cardio / Full body", 9: "Legs", 8: "Arms", 11: "Chest",
+        12: "Back", 10: "Abs / Core", 13: "Shoulders", 14: "Calves"
+    };
+
+    const $  = (s, r) => (r || document).querySelector(s);
+    const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+    const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+
+    const titleCase = s => String(s || "").toLowerCase().split(/\s+/).filter(Boolean)
+        .map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+
+    const truncate = (s, n) => {
+        const x = String(s || "").replace(/\s+/g, " ").trim();
+        return x.length > n ? x.slice(0, n - 1).trimEnd() + "…" : x;
+    };
+
+    const stripHtml = h => {
+        if (!h) return "";
+        const t = document.createElement("div");
+        t.innerHTML = h;
+        return (t.textContent || "").replace(/\s+/g, " ").trim();
+    };
+
+    const todayISO = () => {
+        const d = new Date();
+        const p = n => String(n).padStart(2, "0");
+        return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+    };
+
+    const makeId = () => {
+        const d = new Date();
+        const p = n => String(n).padStart(2, "0");
+        return "FP-" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) +
+            "-" + Math.floor(1000 + Math.random() * 9000);
+    };
+
+    const slug = s => String(s || "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 32);
+
+    function debounce(fn, delay) {
+        let t;
+        return function () {
+            const a = arguments, c = this;
+            clearTimeout(t);
+            t = setTimeout(() => fn.apply(c, a), delay);
+        };
+    }
+
+    function levelClass(raw) {
+        const v = String(raw || "").toLowerCase().trim();
+        if (v.startsWith("beg") || v === "easy") return "beginner";
+        if (v.startsWith("int") || v === "medium") return "intermediate";
+        if (v.startsWith("adv") || v === "hard") return "advanced";
+        return "beginner";
+    }
+
+    function loadCustomVariations() {
+        try {
+            const raw = localStorage.getItem(CUSTOM_VARIATIONS_KEY);
+            if (!raw) return {};
+            const o = JSON.parse(raw);
+            return o && typeof o === "object" ? o : {};
+        } catch { return {}; }
+    }
+    function saveCustomVariations(obj) {
+        try { localStorage.setItem(CUSTOM_VARIATIONS_KEY, JSON.stringify(obj)); }
+        catch (err) { console.warn(err); }
+    }
+    function getAllVariations() {
+        return Object.assign({}, VARIATIONS, loadCustomVariations());
+    }
+    function uniqueAutoName(base) {
+        const all = getAllVariations();
+        const used = {};
+        Object.keys(all).forEach(k => { used[all[k].label] = true; });
+        let name = base + " Mix";
+        if (!used[name]) return name;
+        let n = 2;
+        while (used[name + " " + n]) n++;
+        return name + " " + n;
+    }
+
+    function loadMirror() {
+        try {
+            const raw = localStorage.getItem(LOCAL_MIRROR_KEY);
+            if (!raw) return [];
+            const arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+        } catch { return []; }
+    }
+    function saveMirror(list) {
+        try { localStorage.setItem(LOCAL_MIRROR_KEY, JSON.stringify(list.slice(0, 200))); }
+        catch (err) { console.warn("Local mirror save failed:", err); }
+    }
+    function mirrorPut(record) {
+        const list = loadMirror();
+        const idx = list.findIndex(r => r.id === record.id);
+        if (idx >= 0) list[idx] = Object.assign({}, list[idx], record);
+        else list.unshift(record);
+        saveMirror(list);
+    }
+
+    let toastTimer = null;
+    function toast(msg, type) {
+        const el = $("#toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.className = "toast" + (type ? " toast--" + type : "");
+        el.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.hidden = true; }, 3800);
+    }
+
+    function normalizeWger(ex) {
+        const imgs = Array.isArray(ex.images) ? ex.images : [];
+        const main = imgs.find(i => i.is_main) || imgs[0] || null;
+        const trans = Array.isArray(ex.translations) ? ex.translations : [];
+        const eng = trans.find(t => Number(t.language) === 2) || trans[0] || {};
+        const muscles = Array.isArray(ex.muscles) ? ex.muscles : [];
+        const equip = Array.isArray(ex.equipment) ? ex.equipment : [];
+
+        let instr = "";
+        if (Array.isArray(ex.instructions) && ex.instructions.length) {
+            instr = ex.instructions.map(stripHtml).filter(Boolean).join(" ");
         }
-    })();
+        if (!instr) instr = stripHtml(eng.description || ex.description || "");
+
+        return {
+            name: eng.name || ex.name || "Exercise",
+            type: ex.category ? ex.category.name : "Workout",
+            muscle: muscles[0] ? muscles[0].name : "Full body",
+            equipment: equip[0] ? equip[0].name : "Bodyweight",
+            difficulty: "All levels",
+            instructions: instr,
+            image: main ? (main.thumbnails && main.thumbnails.medium) || main.image : ""
+        };
+    }
+
+    async function fetchWgerCategory(catId) {
+        try {
+            const r = await fetch(WGER_BASE + "/exerciseinfo/?category=" + catId + "&limit=10&language=2");
+            if (!r.ok) throw new Error("wger " + r.status);
+            const d = await r.json();
+            return (d.results || []).map(normalizeWger).filter(x => x.image);
+        } catch { return []; }
+    }
+
+    async function fetchWgerSearch(term, fallbackCat) {
+        try {
+            const r = await fetch(WGER_BASE + "/exercise/search/?term=" +
+                encodeURIComponent(term) + "&language=english&format=json");
+            if (!r.ok) throw new Error("search " + r.status);
+            const d = await r.json();
+            const ids = (d.suggestions || []).slice(0, 8)
+                .map(s => s.data && s.data.id).filter(Boolean);
+            if (!ids.length) return fetchWgerCategory(fallbackCat);
+
+            const details = await Promise.all(ids.map(id =>
+                fetch(WGER_BASE + "/exerciseinfo/" + id + "/")
+                    .then(r => r.json()).catch(() => null)
+            ));
+            const items = details.filter(Boolean).map(normalizeWger).filter(x => x.image);
+            if (!items.length) return fetchWgerCategory(fallbackCat);
+            return items;
+        } catch { return fetchWgerCategory(fallbackCat); }
+    }
+
+    async function fetchExercisesForVariation(key) {
+        const meta = getAllVariations()[key];
+        if (!meta) return [];
+        if (Array.isArray(meta.exercises) && meta.exercises.length) return meta.exercises;
+        if (meta.isCustom && meta.searchTerm) {
+            return fetchWgerSearch(meta.searchTerm, meta.wgerCategory || 15);
+        }
+        return fetchWgerCategory(meta.wgerCategory || 15);
+    }
+
+    function populateVariationSelect() {
+        const select = $("#variation");
+        if (!select) return;
+        const prev = select.value;
+        let html = "";
+
+        Object.keys(VARIATIONS).forEach(k => {
+            const v = VARIATIONS[k];
+            html += '<option value="' + k + '">' + v.emoji + "  " + esc(v.label) + "</option>";
+        });
+
+        const customs = loadCustomVariations();
+        const keys = Object.keys(customs);
+        if (keys.length) {
+            html += '<optgroup label="Your variations">';
+            keys.forEach(k => {
+                const v = customs[k];
+                html += '<option value="' + k + '">' + esc(v.emoji || "✨") + "  " + esc(v.label) + "</option>";
+            });
+            html += "</optgroup>";
+        }
+
+        select.innerHTML = html;
+        const all = getAllVariations();
+        if (prev && all[prev]) select.value = prev;
+        else if (all.strength) select.value = "strength";
+
+        renderCustomChips();
+        updateRemoveButtonState();
+    }
+
+    function renderCustomChips() {
+        const wrap = $("#custom-chips");
+        if (!wrap) return;
+        const customs = loadCustomVariations();
+        const keys = Object.keys(customs);
+        if (!keys.length) { wrap.innerHTML = ""; return; }
+
+        wrap.innerHTML = keys.map(k => {
+            const v = customs[k];
+            const count = Array.isArray(v.exercises) ? v.exercises.length : 0;
+            const term = v.searchTerm ? ' · "' + esc(v.searchTerm) + '"' : "";
+            return '<span class="custom-chip" data-key="' + esc(k) + '">' +
+                '<span class="custom-chip__text">' +
+                esc((v.emoji || "") + " " + v.label) +
+                "<small>" + count + " exercises" + term + "</small>" +
+                "</span>" +
+                '<button type="button" data-action="remove-custom" data-key="' + esc(k) + '" aria-label="Remove">✕</button>' +
+                "</span>";
+        }).join("");
+
+        wrap.onclick = e => {
+            const btn = e.target.closest('[data-action="remove-custom"]');
+            if (btn) removeCustomVariation(btn.dataset.key);
+        };
+    }
+
+    function updateRemoveButtonState() {
+        const select = $("#variation");
+        const btn = $("#remove-variation-btn");
+        if (!select || !btn) return;
+        btn.disabled = !(select.value && select.value.indexOf("custom_") === 0);
+    }
+
+    function removeCustomVariation(key) {
+        const list = loadCustomVariations();
+        if (!list[key]) return;
+        const label = list[key].label;
+        if (!confirm('Remove "' + label + '"?')) return;
+        delete list[key];
+        saveCustomVariations(list);
+
+        const select = $("#variation");
+        const wasSelected = select && select.value === key;
+        populateVariationSelect();
+        if (wasSelected && select) select.value = "strength";
+        updateRemoveButtonState();
+        refreshPreview();
+        toast('"' + label + '" removed.', "success");
+    }
+
+    let previewExercises = [];
+    let selectedIndices = new Set();
+    let previewToken = 0;
+
+    function exerciseCard(ex, index) {
+        const cls = levelClass(ex.difficulty);
+        const media = ex.image
+            ? '<div class="ex-card__media"><img src="' + esc(ex.image) + '" alt="' + esc(ex.name) + '" loading="lazy" /></div>'
+            : '<div class="ex-card__media ex-card__media--placeholder"></div>';
+
+        return '<article class="ex-card ex-card--selectable" data-index="' + index + '" tabindex="0" role="button" aria-pressed="false">' +
+            '<span class="ex-card__check" aria-hidden="true"></span>' +
+            media +
+            '<div class="ex-card__top">' +
+            '<h4 class="ex-card__name">' + esc(titleCase(ex.name)) + "</h4>" +
+            '<span class="badge badge--' + cls + '">' + esc(titleCase(ex.difficulty)) + "</span>" +
+            "</div>" +
+            '<div class="ex-card__meta">' +
+            '<div><span class="label">Muscle</span><span class="value">' + esc(titleCase(ex.muscle)) + "</span></div>" +
+            '<div><span class="label">Equipment</span><span class="value">' + esc(titleCase(ex.equipment)) + "</span></div>" +
+            "</div>" +
+            (ex.instructions ? '<p class="ex-card__instruction">' + esc(truncate(ex.instructions, 140)) + "</p>" : "") +
+            "</article>";
+    }
+
+    function updateSelectionUI() {
+        const count = selectedIndices.size;
+        const bar = $("#preview-selection");
+        const countEl = $("#preview-selection-count");
+        const addBtn = $("#add-variation-btn");
+
+        if (bar) bar.hidden = count === 0;
+        if (countEl) {
+            countEl.textContent = count + (count === 1 ? " exercise selected" : " exercises selected");
+        }
+        if (addBtn) {
+            addBtn.textContent = count > 0
+                ? "+ Add " + count + " as new variation"
+                : "+ Add variation";
+        }
+    }
+
+    function wirePreviewSelection() {
+        $$("#preview-body .ex-card--selectable").forEach(card => {
+            const idx = Number(card.dataset.index);
+            if (selectedIndices.has(idx)) {
+                card.classList.add("is-selected");
+                card.setAttribute("aria-pressed", "true");
+            }
+
+            function toggle() {
+                if (selectedIndices.has(idx)) {
+                    selectedIndices.delete(idx);
+                    card.classList.remove("is-selected");
+                    card.setAttribute("aria-pressed", "false");
+                } else {
+                    selectedIndices.add(idx);
+                    card.classList.add("is-selected");
+                    card.setAttribute("aria-pressed", "true");
+                }
+                updateSelectionUI();
+            }
+
+            card.addEventListener("click", toggle);
+            card.addEventListener("keydown", e => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+            });
+        });
+        updateSelectionUI();
+    }
+
+    function clearSelection() {
+        selectedIndices.clear();
+        $$("#preview-body .ex-card--selectable").forEach(c => {
+            c.classList.remove("is-selected");
+            c.setAttribute("aria-pressed", "false");
+        });
+        updateSelectionUI();
+    }
+
+    async function refreshPreview() {
+        const select = $("#variation");
+        const body = $("#preview-body");
+        const foot = $("#preview-source");
+        const title = $("#preview-title");
+        const sub = $("#preview-subtitle");
+        if (!select || !body) return;
+
+        const key = select.value;
+        const meta = getAllVariations()[key] || VARIATIONS.strength;
+        const myToken = ++previewToken;
+
+        selectedIndices.clear();
+
+        body.innerHTML = '<div class="loading-block"><span class="spinner spinner--lg"></span><p>Loading ' + esc(meta.label) + "…</p></div>";
+        if (title) title.textContent = meta.label + " — preview";
+        if (sub) sub.textContent = "Tap exercises to select them. Then add them as your own variation.";
+
+        const items = (await fetchExercisesForVariation(key)).slice(0, 6);
+        if (myToken !== previewToken) return;
+
+        previewExercises = items;
+
+        if (!items.length) {
+            body.innerHTML = '<div class="empty-state"><strong>Couldn\'t load exercises</strong><p>You can still send a reminder.</p></div>';
+            if (foot) foot.textContent = "No exercises available";
+            updateSelectionUI();
+            return;
+        }
+
+        body.innerHTML = '<div class="ex-list">' +
+            items.map((ex, i) => exerciseCard(ex, i)).join("") +
+            "</div>";
+        if (foot) foot.innerHTML = items.length + " exercises · <strong>Wger exercise library</strong>";
+
+        wirePreviewSelection();
+    }
+
+    function addVariationFromSelection() {
+        if (selectedIndices.size === 0) return false;
+
+        const key = $("#variation").value;
+        const currentMeta = getAllVariations()[key] || VARIATIONS.strength;
+
+        const chosen = Array.from(selectedIndices)
+            .sort((a, b) => a - b)
+            .map(i => previewExercises[i])
+            .filter(Boolean);
+
+        if (!chosen.length) return false;
+
+        const autoName = uniqueAutoName(currentMeta.label);
+        const newKey = "custom_" + slug(autoName);
+        if (!newKey || newKey === "custom_") return false;
+
+        const list = loadCustomVariations();
+        list[newKey] = {
+            label: autoName,
+            emoji: currentMeta.emoji || "✨",
+            duration: currentMeta.duration || 45,
+            wgerCategory: currentMeta.wgerCategory || 15,
+            searchTerm: "",
+            isCustom: true,
+            exercises: chosen.map(ex => ({
+                name: titleCase(ex.name),
+                type: titleCase(ex.type),
+                muscle: titleCase(ex.muscle),
+                equipment: titleCase(ex.equipment),
+                difficulty: titleCase(ex.difficulty),
+                instructions: ex.instructions || "",
+                image: ex.image || ""
+            }))
+        };
+        saveCustomVariations(list);
+
+        populateVariationSelect();
+        const select = $("#variation");
+        if (select) select.value = newKey;
+        updateRemoveButtonState();
+        refreshPreview();
+        toast('Added "' + autoName + '" with ' + chosen.length + " exercise" + (chosen.length === 1 ? "" : "s") + ".", "success");
+        return true;
+    }
+
+    let livePreviewToken = 0;
+    const livePreviewCache = { exercises: [] };
+
+    async function updateModalLivePreview() {
+        const categoryId = Number($("#custom-category").value) || 15;
+        const keyword = ($("#custom-keyword").value || "").trim().toLowerCase();
+        const wrap = $("#modal-preview-body");
+        if (!wrap) return;
+
+        const myToken = ++livePreviewToken;
+        wrap.innerHTML = '<div class="loading-block loading-block--compact">' +
+            '<span class="spinner spinner--lg"></span><p>Picking your exercises…</p></div>';
+
+        const items = keyword
+            ? await fetchWgerSearch(keyword, categoryId)
+            : await fetchWgerCategory(categoryId);
+
+        if (myToken !== livePreviewToken) return;
+
+        const top = items.slice(0, 5);
+        livePreviewCache.exercises = top;
+
+        if (!top.length) {
+            wrap.innerHTML = '<div class="empty-state empty-state--compact">' +
+                "<strong>No exercises found</strong>" +
+                "<p>Try a different focus or keyword.</p></div>";
+            return;
+        }
+
+        wrap.innerHTML = '<div class="mini-ex-list">' + top.map(ex => {
+                const media = ex.image
+                    ? '<div class="mini-ex-card__media"><img src="' + esc(ex.image) + '" alt="" loading="lazy" /></div>'
+                    : '<div class="mini-ex-card__media mini-ex-card__media--empty">💪</div>';
+                return '<div class="mini-ex-card">' + media +
+                    '<div class="mini-ex-card__info">' +
+                    '<div class="mini-ex-card__name">' + esc(titleCase(ex.name)) + "</div>" +
+                    '<div class="mini-ex-card__meta">' + esc(titleCase(ex.muscle)) + " · " + esc(titleCase(ex.equipment)) + "</div>" +
+                    "</div></div>";
+            }).join("") + "</div>" +
+            '<div class="mini-ex-list__foot">' + top.length + " exercises found</div>";
+    }
+
+    const debouncedLiveUpdate = debounce(updateModalLivePreview, 400);
+
+    function updateFocusPreview() {
+        const cat = $("#custom-category").value;
+        const keyword = ($("#custom-keyword").value || "").trim();
+        const el = $("#focus-preview-value");
+        if (!el) return;
+        const focus = CATEGORY_LABELS[cat] || "All exercises";
+        el.textContent = keyword
+            ? '"' + keyword + '" (within ' + focus + ")"
+            : focus;
+    }
+
+    function openCustomModal() {
+        const m = $("#custom-modal");
+        if (!m) return;
+
+        $("#custom-name").value = "";
+        $("#custom-emoji").value = "";
+        $("#custom-duration").value = "30";
+        $("#custom-category").value = "15";
+        $("#custom-keyword").value = "";
+        $("#custom-name-error").textContent = "";
+        $("#focus-preview-value").textContent = "Cardio / Full body";
+        livePreviewCache.exercises = [];
+
+        m.hidden = false;
+        document.body.classList.add("modal-open");
+        setTimeout(() => $("#custom-name").focus(), 50);
+
+        updateModalLivePreview();
+    }
+
+    function closeCustomModal() {
+        const m = $("#custom-modal");
+        if (!m) return;
+        m.hidden = true;
+        document.body.classList.remove("modal-open");
+        livePreviewToken++;
+    }
+
+    async function saveCustomVariation() {
+        const nameEl = $("#custom-name");
+        const name = (nameEl.value || "").trim();
+        const emoji = ($("#custom-emoji").value || "").trim() || "✨";
+        const duration = Math.max(5, Math.min(180, Number($("#custom-duration").value) || 30));
+        const categoryId = Number($("#custom-category").value) || 15;
+        const searchTerm = ($("#custom-keyword").value || "").trim().toLowerCase();
+
+        if (name.length < 2) {
+            $("#custom-name-error").textContent = "Give it a name (at least 2 characters).";
+            nameEl.focus();
+            return;
+        }
+
+        const key = "custom_" + slug(name);
+        if (!key || key === "custom_") {
+            $("#custom-name-error").textContent = "Use at least one letter or number.";
+            return;
+        }
+        if (getAllVariations()[key]) {
+            $("#custom-name-error").textContent = "You already have a variation with this name.";
+            return;
+        }
+
+        let exercises = livePreviewCache.exercises.slice();
+        if (!exercises.length) {
+            exercises = (searchTerm
+                    ? await fetchWgerSearch(searchTerm, categoryId)
+                    : await fetchWgerCategory(categoryId)
+            ).slice(0, 5);
+        }
+
+        const list = loadCustomVariations();
+        list[key] = {
+            label: name,
+            emoji,
+            duration,
+            wgerCategory: categoryId,
+            searchTerm,
+            isCustom: true,
+            exercises
+        };
+        saveCustomVariations(list);
+
+        closeCustomModal();
+        populateVariationSelect();
+        const select = $("#variation");
+        if (select) {
+            select.value = key;
+            updateRemoveButtonState();
+            refreshPreview();
+        }
+        toast('"' + name + '" added.', "success");
+    }
+
+    const form = $("#reminder-form");
+    const submitBtn = $("#submit-btn");
+    const sendNowBtn = $("#send-now-btn");
+    const statusEl = $("#form-status");
+    const dateInput = $("#date");
+    if (dateInput) dateInput.min = todayISO();
+
+    function setBusy(b) {
+        const buttons = [submitBtn, sendNowBtn].filter(Boolean);
+        if (b) {
+            buttons.forEach(btn => {
+                if (!btn.dataset.orig) btn.dataset.orig = btn.innerHTML;
+                btn.disabled = true;
+            });
+            if (submitBtn) submitBtn.innerHTML = '<span class="spinner"></span> Sending your reminder…';
+            if (sendNowBtn) sendNowBtn.innerHTML = '<span class="spinner"></span> Sending…';
+        } else {
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                if (btn.dataset.orig) btn.innerHTML = btn.dataset.orig;
+            });
+        }
+    }
+
+    function showStatus(type, html) {
+        if (!statusEl) return;
+        statusEl.className = "alert alert--" + type;
+        statusEl.innerHTML =
+            '<span class="alert__icon">' + (type === "success" ? "✓" : "!") + "</span>" +
+            '<div class="alert__body">' + html + "</div>";
+        statusEl.hidden = false;
+        statusEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function clearStatus() {
+        if (!statusEl) return;
+        statusEl.hidden = true;
+        statusEl.innerHTML = "";
+    }
+
+    function buildReminderData() {
+        const key = form.variation.value;
+        const meta = getAllVariations()[key] || VARIATIONS.strength;
+
+        let exercisesForPdf;
+        if (selectedIndices.size > 0) {
+            exercisesForPdf = Array.from(selectedIndices)
+                .sort((a, b) => a - b)
+                .map(i => previewExercises[i])
+                .filter(Boolean);
+        } else {
+            exercisesForPdf = previewExercises;
+        }
+
+        return {
+            id: makeId(),
+            name: form.fullName.value.trim(),
+            email: form.email.value.trim(),
+            variationKey: key,
+            variation: meta.label,
+            variationEmoji: meta.emoji,
+            date: form.date.value,
+            time: form.time.value,
+            repeat: form.repeat.value,
+            level: form.level.value,
+            notes: form.notes.value.trim(),
+            duration: meta.duration || 45,
+            exercises: exercisesForPdf.map(ex => ({
+                name: titleCase(ex.name),
+                type: titleCase(ex.type),
+                muscle: titleCase(ex.muscle),
+                equipment: titleCase(ex.equipment),
+                difficulty: titleCase(ex.difficulty),
+                instructions: ex.instructions || "",
+                image: ex.image || ""
+            })),
+            timezoneOffsetMinutes: new Date().getTimezoneOffset()
+        };
+    }
+
+    async function submitReminder(mode) {
+        clearStatus();
+        const isNow = mode === "now";
+        const data = buildReminderData();
+
+        if (!data.name || !data.email || !data.date || !data.time) {
+            showStatus("error", "<strong>Please fill in all required fields.</strong>");
+            return;
+        }
+
+        setBusy(true);
+        showStatus("success",
+            "<strong>" + (isNow ? "Sending now…" : "Scheduling…") + "</strong>" +
+            "<p>Generating your PDF and emailing it.</p>");
+
+        const record = {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            variationKey: data.variationKey,
+            variation: data.variation,
+            variationEmoji: data.variationEmoji,
+            date: data.date,
+            time: data.time,
+            datetime: data.date + "T" + data.time + ":00",
+            repeat: data.repeat,
+            level: data.level,
+            duration: data.duration,
+            notes: data.notes,
+            exerciseCount: data.exercises.length,
+            timezoneOffsetMinutes: data.timezoneOffsetMinutes,
+            status: "pending",
+            createdAt: Date.now(),
+            sentAt: null
+        };
+
+        mirrorPut(record);
+
+        const reminderRef = ref(db, "reminders/" + data.id);
+        let firebaseWrote = false;
+        try {
+            await set(reminderRef, record);
+            firebaseWrote = true;
+        } catch (err) {
+            console.warn("Firebase write failed — check database rules.", err);
+        }
+
+        try {
+            const res = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(data),
+                redirect: "follow"
+            });
+
+            const text = await res.text();
+            let parsed = null;
+            try { parsed = JSON.parse(text); } catch (_) {}
+            if (parsed && parsed.status === "error") {
+                throw new Error(parsed.message || "Backend error.");
+            }
+
+            const patch = { status: "sent", sentAt: Date.now() };
+            mirrorPut(Object.assign({}, record, patch));
+            if (firebaseWrote) {
+                try { await update(reminderRef, patch); }
+                catch (err) { console.warn("Firebase update failed:", err); }
+            }
+
+            showStatus("success",
+                "<strong>" + (isNow ? "Email sent, " : "Reminder sent, ") +
+                esc(data.name.split(" ")[0]) + "!</strong>" +
+                "<p>Check <strong>" + esc(data.email) + "</strong> — your PDF is on its way.</p>" +
+                '<span class="booking-id">' + esc(data.id) + "</span>" +
+                (firebaseWrote
+                    ? ""
+                    : "<p style='margin-top:10px;font-size:0.82rem;opacity:0.75'>Note: Firebase write was blocked — the entry is stored locally. Check your database rules.</p>"));
+
+            toast(isNow ? "Email sent — check your inbox." : "Reminder sent — check your inbox.", "success");
+
+            if (isNow && sendNowBtn) sendNowBtn.hidden = true;
+
+            form.reset();
+            if (dateInput) dateInput.min = todayISO();
+            refreshPreview();
+        } catch (err) {
+            console.error("Submit failed:", err);
+            showStatus("error",
+                "<strong>We couldn't send your reminder.</strong>" +
+                "<p>" + esc(err.message || "Unexpected error.") + "</p>" +
+                "<p style='margin-top:8px'>The reminder was saved in the backlog as <em>pending</em>.</p>");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    if (form) {
+        form.addEventListener("submit", e => {
+            e.preventDefault();
+            submitReminder("schedule");
+        });
+    }
+
+    if (sendNowBtn) {
+        sendNowBtn.addEventListener("click", () => {
+            submitReminder("now");
+        });
+    }
+
+    if (form) {
+        const revive = () => {
+            if (sendNowBtn && sendNowBtn.hidden) sendNowBtn.hidden = false;
+        };
+        form.addEventListener("input", revive);
+        form.addEventListener("change", revive);
+    }
+
+    $("#variation").addEventListener("change", () => {
+        updateRemoveButtonState();
+        refreshPreview();
+    });
+
+    $("#add-variation-btn").addEventListener("click", () => {
+        if (selectedIndices.size > 0) addVariationFromSelection();
+        else openCustomModal();
+    });
+
+    $("#remove-variation-btn").addEventListener("click", () => {
+        const key = $("#variation").value;
+        if (!key || key.indexOf("custom_") !== 0) {
+            toast("Only custom variations can be removed.", "error");
+            return;
+        }
+        removeCustomVariation(key);
+    });
+
+    $("#clear-selection-btn").addEventListener("click", clearSelection);
+
+    $$("[data-close-custom]").forEach(el => el.addEventListener("click", closeCustomModal));
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && !$("#custom-modal").hidden) closeCustomModal();
+    });
+
+    $("#save-custom-btn").addEventListener("click", saveCustomVariation);
+
+    $("#custom-category").addEventListener("change", () => {
+        updateFocusPreview();
+        updateModalLivePreview();
+    });
+
+    $("#custom-keyword").addEventListener("input", () => {
+        updateFocusPreview();
+        debouncedLiveUpdate();
+    });
+
+    $("#custom-name").addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); saveCustomVariation(); }
+    });
+
+    const nav = $("#nav");
+    if (nav) {
+        const onScroll = () => nav.classList.toggle("nav--scrolled", window.scrollY > 8);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+    }
+
+    populateVariationSelect();
+    refreshPreview();
 </script>
-<script src="script.js"></script>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>

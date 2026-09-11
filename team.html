@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>The Team — FitPulse</title>
-    <meta name="description" content="Meet the two people behind FitPulse." />
     <meta name="theme-color" content="#101014" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -18,9 +16,7 @@
     <div class="container nav__inner">
         <a class="brand" href="index.html">
       <span class="brand__mark">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
-        </svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/></svg>
       </span>
             <span class="brand__text">Fit<em>Pulse</em></span>
         </a>
@@ -28,6 +24,7 @@
             <a href="index.html#variations">Variations</a>
             <a href="about.html">Why</a>
             <a href="team.html" class="is-active">Team</a>
+            <a href="dashboard.html">Backlog</a>
             <a href="schedule.html" class="btn btn--primary btn--sm">Set a Reminder</a>
         </nav>
     </div>
@@ -57,8 +54,8 @@
                         <p class="team-card__role">Visual design, layout systems, and the front-end experience.</p>
                         <p>Responsible for the look and feel of FitPulse — the dark sunset palette, the variation cards, and everything users touch. Believes a reminder app should feel calm and confident, not noisy.</p>
                         <ul class="team-card__links">
-                            <li><a href="#" aria-label="Creator One GitHub">GitHub</a></li>
-                            <li><a href="#" aria-label="Creator One LinkedIn">LinkedIn</a></li>
+                            <li><a href="#">GitHub</a></li>
+                            <li><a href="#">LinkedIn</a></li>
                         </ul>
                     </div>
                 </article>
@@ -70,11 +67,11 @@
                     <div class="team-card__body">
                         <span class="pill">Co-creator · Engineering</span>
                         <h2>Creator Two</h2>
-                        <p class="team-card__role">API integration, scheduling, and the email pipeline.</p>
-                        <p>Built the exercise API layer, the wger image pipeline, the offline fallback, the EmailJS flow, and the scheduler that makes reminders actually arrive on time. Obsessed with making sure the app never appears broken.</p>
+                        <p class="team-card__role">API integration, scheduling, and the PDF pipeline.</p>
+                        <p>Built the exercise API layer, the wger image and instruction pipeline, the offline fallback, and the Apps Script backend that generates the styled PDFs and emails them out. Obsessed with making sure the app never appears broken.</p>
                         <ul class="team-card__links">
-                            <li><a href="#" aria-label="Creator Two GitHub">GitHub</a></li>
-                            <li><a href="#" aria-label="Creator Two LinkedIn">LinkedIn</a></li>
+                            <li><a href="#">GitHub</a></li>
+                            <li><a href="#">LinkedIn</a></li>
                         </ul>
                     </div>
                 </article>
@@ -83,7 +80,7 @@
 
             <div class="team-note">
                 <h3>How we split the work</h3>
-                <p>Nothing was handed off. We sat in the same room (and on the same calls), argued about button sizes, rewrote the email template twice, and shipped the whole thing together. Every screen you see here has both of our fingerprints on it.</p>
+                <p>Nothing was handed off. We sat in the same room (and on the same calls), argued about button sizes, rewrote the PDF template twice, and shipped the whole thing together. Every screen you see here has both of our fingerprints on it.</p>
             </div>
         </div>
     </section>
@@ -107,19 +104,17 @@
         <div>
             <a class="brand" href="index.html">
         <span class="brand__mark">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8v8M18 8v8M3 12h18M4.5 6v12M19.5 6v12"/></svg>
         </span>
                 <span class="brand__text">Fit<em>Pulse</em></span>
             </a>
-            <p class="footer__blurb">Personal fitness reminders, delivered on time.</p>
+            <p class="footer__blurb">Personal workout reminders, delivered on time.</p>
         </div>
         <div>
             <h4>App</h4>
             <ul>
                 <li><a href="index.html#variations">Variations</a></li>
-                <li><a href="index.html#how">How it works</a></li>
+                <li><a href="dashboard.html">Backlog</a></li>
                 <li><a href="schedule.html">Set a reminder</a></li>
             </ul>
         </div>
@@ -137,17 +132,15 @@
     </div>
 </footer>
 
-<script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
-</script>
-<script type="text/javascript">
-    (function () {
-        if (window.emailjs) {
-            emailjs.init({ publicKey: "cIeRGuB2mD_8X6NQD" });
+<script>
+    (function(){
+        var nav = document.getElementById('nav');
+        if (nav) {
+            var s = function(){ nav.classList.toggle('nav--scrolled', window.scrollY > 8); };
+            s(); window.addEventListener('scroll', s, { passive: true });
         }
+        document.getElementById('year').textContent = new Date().getFullYear();
     })();
 </script>
-<script src="script.js"></script>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
