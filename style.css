@@ -1028,7 +1028,6 @@ body.modal-open { overflow: hidden; }
     color: var(--text-dim);
 }
 
-/* ---------- Reminders dashboard ---------- */
 .reminders-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1388,10 +1387,9 @@ body.modal-open { overflow: hidden; }
 .team-note p { max-width: 70ch; font-size: 0.98rem; line-height: 1.75; }
 
 /* =========================================================
-   18. WGER IMAGES — variation hero + exercise media
+   18. EXERCISE & VARIATION IMAGES
    ========================================================= */
 
-/* --- Exercise card media (modal + preview) --- */
 .ex-card__media {
     position: relative;
     aspect-ratio: 16 / 10;
@@ -1409,9 +1407,7 @@ body.modal-open { overflow: hidden; }
     transition: transform var(--t-slow) var(--ease);
 }
 
-.ex-card:hover .ex-card__media img {
-    transform: scale(1.06);
-}
+.ex-card:hover .ex-card__media img { transform: scale(1.06); }
 
 .ex-card__media::after {
     content: "";
@@ -1421,19 +1417,37 @@ body.modal-open { overflow: hidden; }
     pointer-events: none;
 }
 
+/* ---------- Upgraded placeholder ---------- */
 .ex-card__media--placeholder {
-    display: grid;
-    place-items: center;
-    font-size: 2.2rem;
-    color: rgba(255, 255, 255, 0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.22);
     background:
-            radial-gradient(circle at 30% 30%, rgba(255, 107, 53, 0.12), transparent 60%),
+            radial-gradient(circle at 30% 30%, rgba(255, 107, 53, 0.16), transparent 60%),
             linear-gradient(135deg, #26262e, #16161c);
+    position: relative;
 }
 
-.ex-card__media--placeholder::after { display: none; }
+.ex-card__media--placeholder::before {
+    content: "💪";
+    filter: grayscale(0.4) brightness(0.7);
+}
 
-/* --- Variation card hero media (index page) --- */
+.ex-card__media--placeholder::after {
+    content: "No photo available";
+    position: static;
+    background: none;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.28);
+}
+
 .variation-card__media {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -1451,9 +1465,7 @@ body.modal-open { overflow: hidden; }
     transition: transform var(--t-slow) var(--ease);
 }
 
-.variation-card:hover .variation-card__media img {
-    transform: scale(1.07);
-}
+.variation-card:hover .variation-card__media img { transform: scale(1.07); }
 
 .variation-card__media::after {
     content: "";
@@ -1484,7 +1496,147 @@ body.modal-open { overflow: hidden; }
 
 .preview-panel .ex-card__media { aspect-ratio: 16 / 9; }
 
-/* ---------- 19. Responsive ---------- */
+/* =========================================================
+   19. CUSTOM VARIATION
+   ========================================================= */
+
+.add-variation-btn {
+    align-self: flex-start;
+    margin-top: 10px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    color: var(--accent);
+    border-color: var(--accent-line);
+    background: rgba(255, 107, 53, 0.06);
+}
+
+.add-variation-btn:hover {
+    background: rgba(255, 107, 53, 0.14);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.custom-variation-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.custom-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px 5px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 107, 53, 0.08);
+    border: 1px solid var(--accent-line);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.custom-chip button {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1;
+    transition: background var(--t) var(--ease), color var(--t) var(--ease);
+}
+
+.custom-chip button:hover {
+    background: rgba(248, 113, 113, 0.25);
+    color: #fff;
+}
+
+/* =========================================================
+   20. PREVIEW MODAL — pickable cards + footer actions
+   ========================================================= */
+
+.modal__foot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.modal__foot-actions .btn--ghost {
+    color: var(--accent);
+    border-color: var(--accent-line);
+    background: rgba(255, 107, 53, 0.06);
+}
+
+.modal__foot-actions .btn--ghost:hover {
+    background: rgba(255, 107, 53, 0.14);
+    border-color: var(--accent);
+}
+
+.ex-card--pickable {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.ex-card--pickable::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid transparent;
+    pointer-events: none;
+    transition: border-color var(--t) var(--ease),
+    box-shadow var(--t) var(--ease);
+}
+
+.ex-card--pickable:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-line);
+    background: rgba(255, 107, 53, 0.08);
+    box-shadow: 0 26px 48px -26px var(--accent-glow),
+    0 0 0 1px rgba(255, 107, 53, 0.15);
+}
+
+.ex-card--pickable:hover::before {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 30px -10px var(--accent-glow);
+}
+
+.ex-card--pickable:active { transform: translateY(-1px) scale(0.995); }
+
+.ex-card--pickable:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ex-card__pick-hint {
+    display: block;
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--t) var(--ease), transform var(--t) var(--ease);
+}
+
+.ex-card--pickable:hover .ex-card__pick-hint,
+.ex-card--pickable:focus-visible .ex-card__pick-hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ---------- 21. Responsive ---------- */
 @media (max-width: 1024px) {
     .schedule-layout { grid-template-columns: 1fr; }
     .preview-panel { position: static; }
@@ -1532,6 +1684,12 @@ body.modal-open { overflow: hidden; }
     .modal__foot { flex-direction: column; align-items: stretch; }
     .modal__foot .btn { width: 100%; }
 
+    .modal__foot-actions {
+        flex-direction: column;
+        width: 100%;
+        margin-left: 0;
+    }
+
     .ex-list, .reminders-list { grid-template-columns: 1fr; }
 
     .footer__inner { grid-template-columns: 1fr; gap: 30px; }
@@ -1561,7 +1719,7 @@ body.modal-open { overflow: hidden; }
     .reminder-card__when { font-size: 1.2rem; }
 }
 
-/* ---------- 20. Reduced motion ---------- */
+/* ---------- 22. Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after {
@@ -1572,15 +1730,17 @@ body.modal-open { overflow: hidden; }
     }
     .variation-card:hover, .step-card:hover, .ex-card:hover,
     .reminder-card:hover, .team-card:hover, .btn:hover,
-    .persona:hover { transform: none; }
+    .persona:hover, .ex-card--pickable:hover,
+    .ex-card--pickable:active { transform: none; }
     .team-card:hover .team-card__photo img,
     .ex-card:hover .ex-card__media img,
     .variation-card:hover .variation-card__media img { transform: none; }
+    .ex-card--pickable:hover .ex-card__pick-hint { transform: none; }
     .hero__glow { animation: none; }
     .eyebrow .dot { animation: none; }
 }
 
-/* ---------- 21. Print ---------- */
+/* ---------- 23. Print ---------- */
 @media print {
     body { background: #fff; color: #000; }
     body::before { display: none; }

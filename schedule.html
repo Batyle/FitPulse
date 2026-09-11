@@ -69,6 +69,9 @@
                         <label for="variation">Workout Variation <span class="req">*</span></label>
                         <select id="variation" name="variation" required></select>
                         <span class="field__error"></span>
+                        <button type="button" class="btn btn--ghost btn--sm add-variation-btn" id="add-variation-btn">
+                            + Add a variation &amp; set another reminder
+                        </button>
                     </div>
 
                     <div class="field">
@@ -144,6 +147,7 @@
         <div class="section__head">
             <h2>Your upcoming reminders</h2>
             <p>Saved locally in this browser. The nearest one also triggers a native notification while the tab is open.</p>
+            <button type="button" class="btn btn--ghost btn--sm add-variation-btn" id="add-another-reminder-btn">+ Add another reminder</button>
         </div>
         <div id="reminders-list" class="reminders-list">
             <div class="empty-state">
@@ -189,6 +193,56 @@
         <p class="footer__note">Train hard. Recover harder.</p>
     </div>
 </footer>
+
+<div class="modal" id="custom-modal" hidden>
+    <div class="modal__overlay" data-close-custom></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="custom-modal-title">
+        <header class="modal__head">
+            <div>
+                <p class="modal__eyebrow">Custom variation</p>
+                <h3 id="custom-modal-title">Add your own workout</h3>
+            </div>
+            <button class="icon-btn" type="button" data-close-custom aria-label="Close">✕</button>
+        </header>
+        <div class="modal__body">
+
+            <div class="field field--full">
+                <label for="custom-name">Variation name <span class="req">*</span></label>
+                <input type="text" id="custom-name" placeholder="e.g. Boxing, Swimming, Rowing" maxlength="40" />
+                <span class="field__error" id="custom-name-error"></span>
+            </div>
+
+            <div class="form-grid" style="margin-top:18px;">
+                <div class="field">
+                    <label for="custom-emoji">Emoji (optional)</label>
+                    <input type="text" id="custom-emoji" placeholder="🥊" maxlength="4" />
+                </div>
+                <div class="field">
+                    <label for="custom-duration">Duration (min)</label>
+                    <input type="number" id="custom-duration" value="30" min="5" max="180" />
+                </div>
+                <div class="field field--full">
+                    <label for="custom-category">Exercise focus <span class="req">*</span></label>
+                    <select id="custom-category">
+                        <option value="15">Cardio</option>
+                        <option value="9">Legs</option>
+                        <option value="8">Arms</option>
+                        <option value="11">Chest</option>
+                        <option value="12">Back</option>
+                        <option value="10">Abs</option>
+                        <option value="13">Shoulders</option>
+                        <option value="14">Calves</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+        <footer class="modal__foot">
+            <p class="modal__source">Saved to this browser only.</p>
+            <button type="button" class="btn btn--primary" id="save-custom-btn">Add Variation</button>
+        </footer>
+    </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
