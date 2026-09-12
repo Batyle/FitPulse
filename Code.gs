@@ -2,11 +2,24 @@ const SENDER_NAME  = 'FitPulse';
 const FOLDER_NAME  = 'FitPulse Reminders';
 const SHEET_NAME   = 'Reminders';
 
+const FIREBASE_BASE = 'https://fitpulse-bca3b-default-rtdb.asia-southeast1.firebasedatabase.app';
+
 const NAVY       = '#1A2530';
 const ORANGE     = '#FF6B35';
 const PINK       = '#FF3D81';
 const LIGHT_GRAY = '#F5F7FA';
 const DARK_GRAY  = '#333333';
+
+const VARIATION_EMOJI = {
+  'Yoga Flow':           '🧘',
+  'HIIT Blast':          '🔥',
+  'Strength Builder':    '💪',
+  'Cardio Sprint':       '🏃',
+  'Mobility & Stretch':  '🤍',
+  'Core Pilates':        '🤸',
+  'Spin Endurance':      '🚴',
+  'Dance Cardio':        '💃'
+};
 
 function doGet() {
   return jsonResponse({
@@ -19,25 +32,215 @@ function doGet() {
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents || '{}');
+
+    if (data.action === 'delete') {
+      return handleDelete(data);
+    }
+
     if (!data.email || !data.date || !data.time) {
       return jsonResponse({ status: 'error', message: 'Missing email, date or time.' });
     }
 
-    const result = buildReminderDoc(data);
-    sendReminderEmail(data, result.pdfBlob);
-    logToSheet(data, result.docUrl, result.pdfUrl);
-
-    return jsonResponse({
-      status: 'success',
-      reminderId: data.id,
-      emailedTo: data.email,
-      docUrl: result.docUrl,
-      pdfUrl: result.pdfUrl
-    });
+    if (data.sendNow) {
+      return handleSendNow(data);
+    }
+    return handleScheduled(data);
   } catch (err) {
     console.error('doPost error:', err);
     return jsonResponse({ status: 'error', message: String(err) });
   }
+}
+
+function handleSendNow(data) {
+  const result = buildReminderDoc(data);
+  sendReminderEmail(data, result.pdfBlob);
+  logToSheet(data, result.docUrl, result.pdfUrl, 'sent', null);
+  updateFirebaseStatus(data.id, 'sent');
+  return jsonResponse({
+    status: 'success',
+    mode: 'now',
+    reminderId: data.id,
+    emailedTo: data.email,
+    docUrl: result.docUrl,
+    pdfUrl: result.pdfUrl
+  });
+}
+
+function handleScheduled(data) {
+  const when = parseScheduledDate(data.date, data.time);
+  if (!when) {
+    return jsonResponse({ status: 'error', message: 'Invalid date or time.' });
+  }
+
+  if (when.getTime() < Date.now() - 60 * 1000) {
+    return jsonResponse({ status: 'error', message: 'Pick a time in the future.' });
+  }
+
+  logToSheet(data, '', '', 'pending', when);
+
+  return jsonResponse({
+    status: 'success',
+    mode: 'scheduled',
+    reminderId: data.id,
+    scheduledFor: when.toISOString()
+  });
+}
+
+function handleDelete(data) {
+  const id = String(data.id || '').trim();
+  if (!id) {
+    return jsonResponse({ status: 'error', message: 'Missing reminder id.' });
+  }
+
+  try {
+    const sheet = getSheet();
+    const range = sheet.getDataRange();
+    const rows = range.getValues();
+
+    let deleted = false;
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (String(rows[i][1] || '').trim() === id) {
+        sheet.deleteRow(i + 1);
+        deleted = true;
+        break;
+      }
+    }
+
+    return jsonResponse({
+      status: 'success',
+      deleted: deleted,
+      id: id
+    });
+  } catch (err) {
+    console.error('Delete failed for ' + id + ':', err);
+    return jsonResponse({ status: 'error', message: String(err) });
+  }
+}
+
+function processPendingReminders() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return;
+
+  try {
+    const sheet = getSheet();
+    const range = sheet.getDataRange();
+    const rows = range.getValues();
+    if (rows.length < 2) return;
+
+    const now = new Date();
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const status = String(row[13] || '').trim();
+      if (status !== 'pending') continue;
+
+      const nextRun = row[14];
+      if (!(nextRun instanceof Date)) continue;
+      if (nextRun.getTime() > now.getTime()) continue;
+
+      try {
+        sendDueRow(row, i + 1, sheet);
+      } catch (err) {
+        console.error('Send failed for row ' + (i + 1) + ':', err);
+        sheet.getRange(i + 1, 14).setValue('error');
+      }
+    }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function sendDueRow(row, sheetRow, sheet) {
+  const data = {
+    id:                row[1],
+    name:              row[2],
+    email:             row[3],
+    variation:         row[4],
+    variationKey:      row[5],
+    variationEmoji:    VARIATION_EMOJI[row[4]] || '✨',
+    date:              toDateString(row[6]),
+    time:              toTimeString(row[7]),
+    repeat:            row[8] || 'Once',
+    level:             row[9] || '',
+    duration:          row[10] || 45,
+    notes:             row[11] || '',
+    exercises:         safeJson(row[12]),
+    timezoneOffsetMinutes: Number(row[15]) || 0
+  };
+
+  const result = buildReminderDoc(data);
+  sendReminderEmail(data, result.pdfBlob);
+
+  sheet.getRange(sheetRow, 17).setValue(result.docUrl);
+  sheet.getRange(sheetRow, 18).setValue(result.pdfUrl);
+
+  const nextRun = computeNextRun(row[14], data.repeat);
+
+  if (nextRun) {
+    sheet.getRange(sheetRow, 15).setValue(nextRun);
+    sheet.getRange(sheetRow, 14).setValue('pending');
+  } else {
+    sheet.getRange(sheetRow, 14).setValue('sent');
+  }
+
+  updateFirebaseStatus(data.id, nextRun ? 'pending' : 'sent');
+}
+
+function computeNextRun(currentRun, repeat) {
+  if (!repeat || repeat === 'Once') return null;
+  if (!(currentRun instanceof Date)) return null;
+
+  const next = new Date(currentRun.getTime());
+
+  if (repeat === 'Daily') {
+    next.setDate(next.getDate() + 1);
+    return next;
+  }
+  if (repeat === 'Weekdays') {
+    do {
+      next.setDate(next.getDate() + 1);
+    } while (next.getDay() === 0 || next.getDay() === 6);
+    return next;
+  }
+  if (repeat === 'Weekly') {
+    next.setDate(next.getDate() + 7);
+    return next;
+  }
+  return null;
+}
+
+function setupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'processPendingReminders') {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+
+  ScriptApp.newTrigger('processPendingReminders')
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+
+  Logger.log('Trigger installed — processPendingReminders will run every minute.');
+}
+
+function removeTriggers() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'processPendingReminders') {
+      ScriptApp.deleteTrigger(t);
+    }
+  });
+  Logger.log('Trigger removed.');
+}
+
+function showTriggerStatus() {
+  const triggers = ScriptApp.getProjectTriggers();
+  const active = triggers.filter(function (t) {
+    return t.getHandlerFunction() === 'processPendingReminders';
+  });
+  Logger.log(active.length > 0
+    ? 'Active — ' + active.length + ' trigger(s) installed.'
+    : 'No trigger installed. Run setupTrigger() once.');
 }
 
 function buildReminderDoc(data) {
@@ -200,7 +403,7 @@ function buildReminderDoc(data) {
            .setAlignment(DocumentApp.HorizontalAlignment.CENTER).setSpacingAfter(0);
 
   doc.saveAndClose();
-  Utilities.sleep(2000);
+  Utilities.sleep(1500);
 
   const docFile = DriveApp.getFileById(doc.getId());
   docFile.moveTo(folder);
@@ -300,7 +503,7 @@ function buildEmailBody(data, firstName) {
     '</div>';
 }
 
-function logToSheet(data, docUrl, pdfUrl) {
+function logToSheet(data, docUrl, pdfUrl, status, nextRun) {
   const sheet = getSheet();
   sheet.appendRow([
     new Date(),
@@ -316,8 +519,8 @@ function logToSheet(data, docUrl, pdfUrl) {
     data.duration || '',
     data.notes || '',
     JSON.stringify(data.exercises || []),
-    'Sent',
-    new Date(data.date + 'T' + data.time + ':00'),
+    status || 'pending',
+    nextRun || null,
     Number(data.timezoneOffsetMinutes) || 0,
     docUrl || '',
     pdfUrl || ''
@@ -362,15 +565,60 @@ function ensureSheetColumns(sheet) {
   if (!headers[17]) sheet.getRange(1, 18).setValue('PDF URL');
 }
 
+function updateFirebaseStatus(id, status) {
+  if (!id) return;
+  try {
+    const url = FIREBASE_BASE + '/reminders/' + encodeURIComponent(id) + '.json';
+    const payload = { status: status };
+    if (status === 'sent') payload.sentAt = Date.now();
+
+    UrlFetchApp.fetch(url, {
+      method: 'patch',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+  } catch (err) {
+    console.warn('Firebase status sync failed for ' + id + ': ' + err);
+  }
+}
+
+function parseScheduledDate(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const d = new Date(dateStr + 'T' + timeStr + ':00');
+  return isNaN(d) ? null : d;
+}
+
+function toDateString(v) {
+  if (v instanceof Date) {
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    return v.getFullYear() + '-' + p(v.getMonth() + 1) + '-' + p(v.getDate());
+  }
+  return String(v || '');
+}
+
+function toTimeString(v) {
+  if (v instanceof Date) {
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    return p(v.getHours()) + ':' + p(v.getMinutes());
+  }
+  return String(v || '');
+}
+
+function safeJson(str) {
+  try { return JSON.parse(str || '[]'); }
+  catch (_) { return []; }
+}
+
 function formatTime12(hhmm) {
   if (!hhmm) return '—';
-  var parts = String(hhmm).split(':');
-  var h = parseInt(parts[0], 10);
-  var m = parseInt(parts[1] || '0', 10);
+  const parts = String(hhmm).split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] || '0', 10);
   if (isNaN(h)) return hhmm;
 
-  var suffix = h >= 12 ? 'PM' : 'AM';
-  var h12 = h % 12;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12;
   if (h12 === 0) h12 = 12;
 
   return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + suffix;
@@ -378,10 +626,10 @@ function formatTime12(hhmm) {
 
 function formatMediumDate(iso) {
   if (!iso) return '—';
-  var d = new Date(iso + 'T00:00:00');
+  const d = new Date(iso + 'T00:00:00');
   if (isNaN(d)) return iso;
 
-  var months = [
+  const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
@@ -415,7 +663,7 @@ function esc(s) {
 
 function testBackend() {
   const fakeData = {
-    id: 'FP-TEST-0001',
+    id: 'FP-TEST-' + Math.floor(1000 + Math.random() * 9000),
     name: 'Test User',
     email: 'any-gmail-address@gmail.com',
     variation: 'Strength Builder',
@@ -457,7 +705,34 @@ function testBackend() {
 
   const result = buildReminderDoc(fakeData);
   sendReminderEmail(fakeData, result.pdfBlob);
-  Logger.log('Done! Sent to: ' + fakeData.email);
+  Logger.log('Sent to: ' + fakeData.email);
   Logger.log('Doc URL: ' + result.docUrl);
   Logger.log('PDF URL: ' + result.pdfUrl);
+}
+
+function testScheduledQueue() {
+  const fakeData = {
+    id: 'FP-QUEUE-' + Math.floor(1000 + Math.random() * 9000),
+    name: 'Queue Test',
+    email: 'any-gmail-address@gmail.com',
+    variation: 'HIIT Blast',
+    variationKey: 'hiit',
+    date: '2026-09-15',
+    time: '07:00',
+    repeat: 'Once',
+    level: 'Intermediate',
+    duration: 30,
+    notes: 'Queued test',
+    exercises: [],
+    timezoneOffsetMinutes: -480
+  };
+
+  const when = parseScheduledDate(fakeData.date, fakeData.time);
+  logToSheet(fakeData, '', '', 'pending', when);
+  Logger.log('Queued row. It will fire at ' + when.toString());
+}
+
+function processNow() {
+  processPendingReminders();
+  Logger.log('processPendingReminders() ran.');
 }
