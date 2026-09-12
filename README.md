@@ -1,4 +1,4 @@
-# FitClass
+# FitPulse
 
 A dark, responsive boutique-gym class booking website. It gets exercise suggestions from API Ninjas when configured and automatically falls back to the free-exercise-db dataset (and finally embedded sample data) if that service is unavailable.
 
