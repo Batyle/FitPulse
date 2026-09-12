@@ -38,7 +38,7 @@
         <div class="container">
             <p class="eyebrow"><span class="dot"></span> Email backlog</p>
             <h1>Sent reminders</h1>
-            <p>Every reminder scheduled through FitPulse — most recent first. No account required.</p>
+            <p>Every reminder scheduled through FitPulse — most recent first. Delete any entry you no longer need.</p>
         </div>
     </section>
 
@@ -119,12 +119,13 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script type="module">
-    import { db, ref, onValue } from "./firebase-config.js";
+    import { db, ref, onValue, remove } from "./firebase-config.js";
+
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxK4ESnY5JxhM7DeMUHvbYlRm5WMe0lexYsC1ywh6EqVSfh74qnSg7ILjiSYh62rbR3Tw/exec";
+    const LOCAL_MIRROR_KEY = "fitpulse:backlog-mirror";
 
     const $ = (s, r) => (r || document).querySelector(s);
     const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-
-    const LOCAL_MIRROR_KEY = "fitpulse:backlog-mirror";
 
     function esc(s) {
         return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
@@ -188,6 +189,10 @@
             return Array.isArray(arr) ? arr : [];
         } catch { return []; }
     }
+    function saveMirror(list) {
+        try { localStorage.setItem(LOCAL_MIRROR_KEY, JSON.stringify(list.slice(0, 200))); }
+        catch (err) { console.warn("Local mirror save failed:", err); }
+    }
 
     let ALL = [];
     let FILTER = "all";
@@ -233,6 +238,15 @@
             (r.datetime ? new Date(r.datetime).getTime() : 0);
     }
 
+    function trashIcon() {
+        return '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+            'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+            '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>' +
+            '<path d="M10 11v6M14 11v6"/>' +
+            '</svg>';
+    }
+
     function cardMarkup(r) {
         const status = computeStatus(r);
         const statusLabel = status === "sent" ? "Sent" : "Pending";
@@ -265,7 +279,17 @@
 
                 <footer class="backlog-card__foot">
                     <span class="backlog-card__id">${esc(r.id || "")}</span>
-                    ${stamp ? `<span>${status === "sent" ? "Sent" : "Saved"} ${esc(stamp)}</span>` : ""}
+                    <div class="backlog-card__foot-right">
+                        ${stamp ? `<span>${status === "sent" ? "Sent" : "Saved"} ${esc(stamp)}</span>` : ""}
+                        <button type="button"
+                                class="backlog-card__delete"
+                                data-act="delete"
+                                data-id="${esc(r.id)}"
+                                aria-label="Delete reminder ${esc(r.id || "")}"
+                                title="Delete">
+                            ${trashIcon()}
+                        </button>
+                    </div>
                 </footer>
             </article>
         `;
@@ -308,6 +332,54 @@
 
         list.innerHTML = items.map(cardMarkup).join("");
     }
+
+    async function deleteReminder(id, btn) {
+        if (!id) return;
+        if (!confirm("Delete reminder " + id + "?\n\nThis removes it from the backlog and the Google Sheet.")) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add("is-busy");
+        }
+
+        const card = document.querySelector('.backlog-card[data-id="' + CSS.escape(id) + '"]');
+        if (card) card.classList.add("is-deleting");
+
+        try {
+            await remove(ref(db, "reminders/" + id));
+        } catch (err) {
+            console.warn("Firebase delete failed:", err);
+        }
+
+        try {
+            const mirror = loadMirror().filter(r => r.id !== id);
+            saveMirror(mirror);
+        } catch (err) {
+            console.warn("Local mirror delete failed:", err);
+        }
+
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "delete", id: id }),
+                redirect: "follow"
+            });
+        } catch (err) {
+            console.warn("Sheet delete failed:", err);
+        }
+
+        ALL = ALL.filter(r => r.id !== id);
+        render();
+        toast("Reminder deleted.", "success");
+    }
+
+    document.addEventListener("click", e => {
+        const btn = e.target.closest('[data-act="delete"]');
+        if (!btn) return;
+        e.preventDefault();
+        deleteReminder(btn.dataset.id, btn);
+    });
 
     $$(".backlog-filter").forEach(btn => {
         btn.addEventListener("click", () => {

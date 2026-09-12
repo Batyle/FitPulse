@@ -116,7 +116,7 @@
                         Send Email Now
                     </button>
 
-                    <p class="form-actions__note">We'll email you a PDF with your workout plan within seconds.</p>
+                    <p class="form-actions__note">We'll email you at the scheduled date and time you chose.</p>
                 </div>
 
             </form>
@@ -965,7 +965,9 @@
         setBusy(true);
         showStatus("success",
             "<strong>" + (isNow ? "Sending now…" : "Scheduling…") + "</strong>" +
-            "<p>Generating your PDF and emailing it.</p>");
+            "<p>" + (isNow
+                ? "Generating your PDF and emailing it."
+                : "Saving your reminder. The email will be sent on the scheduled date and time.") + "</p>");
 
         const record = {
             id: data.id,
@@ -983,9 +985,9 @@
             notes: data.notes,
             exerciseCount: data.exercises.length,
             timezoneOffsetMinutes: data.timezoneOffsetMinutes,
-            status: "pending",
+            status: isNow ? "sent" : "pending",
             createdAt: Date.now(),
-            sentAt: null
+            sentAt: isNow ? Date.now() : null
         };
 
         mirrorPut(record);
@@ -1003,7 +1005,7 @@
             const res = await fetch(APPS_SCRIPT_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(data),
+                body: JSON.stringify(Object.assign({}, data, { sendNow: isNow })),
                 redirect: "follow"
             });
 
@@ -1014,23 +1016,30 @@
                 throw new Error(parsed.message || "Backend error.");
             }
 
-            const patch = { status: "sent", sentAt: Date.now() };
+            const patch = isNow
+                ? { status: "sent", sentAt: Date.now() }
+                : { status: "pending" };
             mirrorPut(Object.assign({}, record, patch));
             if (firebaseWrote) {
                 try { await update(reminderRef, patch); }
                 catch (err) { console.warn("Firebase update failed:", err); }
             }
 
+            const message = isNow
+                ? "<strong>Email sent, " + esc(data.name.split(" ")[0]) + "!</strong>" +
+                "<p>Check <strong>" + esc(data.email) + "</strong> — your PDF is on its way.</p>"
+                : "<strong>Reminder scheduled, " + esc(data.name.split(" ")[0]) + "!</strong>" +
+                "<p>We'll email <strong>" + esc(data.email) + "</strong> on " +
+                "<strong>" + esc(data.date) + "</strong> at <strong>" + esc(data.time) + "</strong>.</p>";
+
             showStatus("success",
-                "<strong>" + (isNow ? "Email sent, " : "Reminder sent, ") +
-                esc(data.name.split(" ")[0]) + "!</strong>" +
-                "<p>Check <strong>" + esc(data.email) + "</strong> — your PDF is on its way.</p>" +
+                message +
                 '<span class="booking-id">' + esc(data.id) + "</span>" +
                 (firebaseWrote
                     ? ""
                     : "<p style='margin-top:10px;font-size:0.82rem;opacity:0.75'>Note: Firebase write was blocked — the entry is stored locally. Check your database rules.</p>"));
 
-            toast(isNow ? "Email sent — check your inbox." : "Reminder sent — check your inbox.", "success");
+            toast(isNow ? "Email sent — check your inbox." : "Reminder scheduled.", "success");
 
             if (isNow && sendNowBtn) sendNowBtn.hidden = true;
 
@@ -1040,9 +1049,9 @@
         } catch (err) {
             console.error("Submit failed:", err);
             showStatus("error",
-                "<strong>We couldn't send your reminder.</strong>" +
+                "<strong>We couldn't save your reminder.</strong>" +
                 "<p>" + esc(err.message || "Unexpected error.") + "</p>" +
-                "<p style='margin-top:8px'>The reminder was saved in the backlog as <em>pending</em>.</p>");
+                "<p style='margin-top:8px'>The reminder is still saved in the backlog as <em>pending</em>.</p>");
         } finally {
             setBusy(false);
         }
