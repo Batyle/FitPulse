@@ -1,8 +1,3 @@
-/* ============================================================
-   FitPulse — firebase-config.js
-   Public (no-auth) Firebase module. Every page imports from here.
-   ============================================================ */
-
 import { initializeApp }
     from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAnalytics }

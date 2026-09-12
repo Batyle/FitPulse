@@ -1,13 +1,6 @@
-/* =========================================================
-   FitPulse — script.js
-   ========================================================= */
-
 (function () {
     'use strict';
 
-    /* =======================================================
-       1. CONFIG
-       ======================================================= */
     const CONFIG = {
         API_KEY: 'YOUR_API_NINJAS_KEY',
         API_BASE: 'https://api.api-ninjas.com/v1/exercises',
@@ -36,9 +29,6 @@
         }
     };
 
-    /* =======================================================
-       2. VARIATION MAP
-       ======================================================= */
     const VARIATIONS = {
         yoga: {
             label: 'Yoga Flow', emoji: '🧘', tag: 'Mobility',
@@ -108,9 +98,6 @@
 
     const VARIATION_KEYS = Object.keys(VARIATIONS);
 
-    /* =======================================================
-       3. UTILITIES
-       ======================================================= */
     const $ = (sel, root) => (root || document).querySelector(sel);
     const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
@@ -194,9 +181,6 @@
         return 'beginner';
     }
 
-    /* =======================================================
-       4. CUSTOM VARIATIONS STORAGE
-       ======================================================= */
     const CUSTOM_VARIATIONS_KEY = 'fitpulse:custom-variations';
 
     function loadCustomVariations() {
@@ -217,9 +201,6 @@
         return Object.assign({}, VARIATIONS, loadCustomVariations());
     }
 
-    /* =======================================================
-       5. NORMALISERS
-       ======================================================= */
     function normalizeApiNinjas(ex) {
         return {
             name: ex.name || 'Untitled exercise',
@@ -264,9 +245,6 @@
         };
     }
 
-    /* =======================================================
-       6. EXERCISE DATA LAYER
-       ======================================================= */
     const cache = new Map();
     const wgerCache = new Map();
     let fallbackDbPromise = null;
@@ -340,9 +318,6 @@
         return source === 'api-ninjas' ? 'API Ninjas Exercises API' : 'free-exercise-db (offline fallback)';
     }
 
-    /* =======================================================
-       7. WGER IMAGE LAYER
-       ======================================================= */
     async function fetchWgerByCategory(categoryId) {
         const key = `cat:${categoryId}`;
         const hit = wgerCache.get(key);
@@ -381,11 +356,6 @@
         }
     }
 
-    /* ---------- ENHANCED SEARCH ----------
-       Tries the full name, then the first significant keyword.
-       Walks all suggestions for a direct image, then fetches the full
-       /exerciseinfo/{id}/ record for the top 3 — where wger actually
-       stores images. */
     async function searchWgerByName(name) {
         if (!name) return null;
 
@@ -412,7 +382,6 @@
                 const suggestions = data.suggestions || [];
                 if (suggestions.length === 0) continue;
 
-                // Pass 1 — walk every suggestion, use the first that has an image
                 for (const s of suggestions.slice(0, 6)) {
                     const direct = (s.data && (s.data.image || s.data.image_thumbnail)) || '';
                     if (direct) {
@@ -426,7 +395,6 @@
                     }
                 }
 
-                // Pass 2 — full record for top 3 suggestions
                 for (const s of suggestions.slice(0, 3)) {
                     if (s.data && s.data.id) {
                         const full = await fetchWgerById(s.data.id);
@@ -451,8 +419,6 @@
         const variations = getAllVariations();
         const variation = variations[key] || variations.strength;
 
-        // Wger keeps each exercise's instructions and image in the same record,
-        // so use it directly rather than attaching an unrelated search result.
         if (variation.wgerCategory) {
             const wgerItems = await fetchWgerByCategory(variation.wgerCategory);
             if (wgerItems.length) {
@@ -498,9 +464,6 @@
         return '';
     }
 
-    /* =======================================================
-       8. RENDERERS
-       ======================================================= */
     function imageMarkup(url, alt, cls) {
         if (!url) {
             return `<div class="${cls} ex-card__media--placeholder" aria-hidden="true"></div>`;
@@ -546,9 +509,6 @@
         return `<div class="empty-state"><strong>Couldn't load exercises</strong><p>${esc(message || 'Please check your connection and try again.')}</p></div>`;
     }
 
-    /* =======================================================
-       9. TOAST
-       ======================================================= */
     let toastTimer = null;
     function toast(message, type) {
         const el = $('#toast');
@@ -560,9 +520,6 @@
         toastTimer = setTimeout(() => { el.hidden = true; }, 4200);
     }
 
-    /* =======================================================
-       10. PREVIEW MODAL CONTROLLER
-       ======================================================= */
     const modal = $('#modal');
     const modalTitle = $('#modal-title');
     const modalEyebrow = $('#modal-eyebrow');
@@ -626,9 +583,6 @@
         });
     }
 
-    /* =======================================================
-       11. VARIATION GRID (index page)
-       ======================================================= */
     function variationCardMarkup(key, heroImage) {
         const all = getAllVariations();
         const v = all[key];
@@ -680,9 +634,6 @@
         });
     }
 
-    /* =======================================================
-       12. PREVIEW MODAL (index page)
-       ======================================================= */
     async function openVariationModal(key) {
         const all = getAllVariations();
         const v = all[key];
@@ -723,9 +674,6 @@
         });
     }
 
-    /* =======================================================
-       13. REMINDER STORAGE
-       ======================================================= */
     const STORE_KEY = 'fitpulse:reminders';
 
     function loadReminders() {
@@ -756,9 +704,6 @@
         return list;
     }
 
-    /* =======================================================
-       14. EMAIL LAYER
-       ======================================================= */
     function emailjsReady() {
         if (typeof window.emailjs === 'undefined') return false;
         if (typeof window.emailjs.send !== 'function') return false;
@@ -893,9 +838,6 @@
         }
     }
 
-    /* =======================================================
-       15. BROWSER NOTIFICATIONS
-       ======================================================= */
     const notificationTimers = new Map();
 
     async function requestNotificationPermission() {
@@ -932,9 +874,6 @@
         loadReminders().forEach(scheduleBrowserNotification);
     }
 
-    /* =======================================================
-       16. REMINDER DASHBOARD
-       ======================================================= */
     function countdownLabel(datetimeISO) {
         const target = new Date(datetimeISO).getTime();
         const diff = target - Date.now();
@@ -1003,9 +942,6 @@
         setInterval(renderReminders, 60000);
     }
 
-    /* =======================================================
-       17. SCHEDULE FORM
-       ======================================================= */
     let previewExercises = [];
 
     function populateVariationSelect() {
@@ -1341,9 +1277,6 @@
         });
     }
 
-    /* =======================================================
-       18. SHARED CHROME
-       ======================================================= */
     function initNav() {
         const nav = $('#nav');
         if (!nav) return;
@@ -1352,9 +1285,6 @@
         window.addEventListener('scroll', onScroll, { passive: true });
     }
 
-    /* =======================================================
-       19. BOOT
-       ======================================================= */
     function init() {
         initNav();
 
